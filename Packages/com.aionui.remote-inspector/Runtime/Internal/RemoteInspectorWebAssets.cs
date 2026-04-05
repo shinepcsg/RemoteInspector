@@ -20,8 +20,6 @@ namespace Aion.RemoteInspector.Internal
             ["/app.js"] = new AssetManifestEntry { ResourcePath = "AionRemoteInspectorWeb/app", ContentType = "application/javascript; charset=utf-8" }
         };
 
-        private static readonly Dictionary<string, byte[]> Cache = new(System.StringComparer.OrdinalIgnoreCase);
-
         public static bool TryGetAsset(string rawPath, out string contentType, out byte[] data)
         {
             var path = NormalizePath(rawPath);
@@ -32,21 +30,16 @@ namespace Aion.RemoteInspector.Internal
                 return false;
             }
 
-            if (!Cache.TryGetValue(path, out data))
+            var asset = Resources.Load<TextAsset>(entry.ResourcePath);
+            if (asset == null)
             {
-                var asset = Resources.Load<TextAsset>(entry.ResourcePath);
-                if (asset == null)
-                {
-                    contentType = "text/html; charset=utf-8";
-                    data = Encoding.UTF8.GetBytes("<h1>Missing embedded web asset</h1>");
-                    return true;
-                }
-
-                data = asset.bytes;
-                Cache[path] = data;
+                contentType = "text/html; charset=utf-8";
+                data = Encoding.UTF8.GetBytes("<h1>Missing embedded web asset</h1>");
+                return true;
             }
 
             contentType = entry.ContentType;
+            data = asset.bytes;
             return true;
         }
 

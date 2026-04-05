@@ -9,7 +9,8 @@ const state = {
   inspector: null,
   info: null,
   authenticated: false,
-  collapsedSections: new Set()
+  collapsedSections: new Set(),
+  collapsedHierarchyNodes: new Set()
 };
 
 const elements = {
@@ -199,6 +200,7 @@ function onSocketMessage(event) {
       break;
     case "hierarchy/result":
       state.hierarchy = payload.nodes || [];
+      syncHierarchyCollapseState();
       if (state.selectedGameObjectId && !state.hierarchy.some((node) => node.instanceId === state.selectedGameObjectId)) {
         state.selectedGameObjectId = 0;
         state.inspector = null;
@@ -319,7 +321,10 @@ function refreshLogs() {
 }
 
 function renderHierarchy() {
-  elements.hierarchySummary.textContent = `${state.hierarchy.length} object(s)`;
+  const visibleNodes = getVisibleHierarchyNodes();
+  elements.hierarchySummary.textContent = visibleNodes.length === state.hierarchy.length
+    ? `${state.hierarchy.length} object(s)`
+    : `${visibleNodes.length} / ${state.hierarchy.length} object(s)`;
   elements.hierarchyList.innerHTML = "";
 
   if (!state.hierarchy.length) {
@@ -331,10 +336,8 @@ function renderHierarchy() {
   }
 
   const fragment = document.createDocumentFragment();
-  for (let index = 0; index < state.hierarchy.length; index += 1) {
-    const node = state.hierarchy[index];
-    const nextNode = state.hierarchy[index + 1];
-    const hasChildren = Boolean(nextNode && nextNode.depth > node.depth);
+  for (const entry of visibleNodes) {
+    const { node, hasChildren, collapsed } = entry;
 
     const button = document.createElement("button");
     button.type = "button";
@@ -349,13 +352,18 @@ function renderHierarchy() {
     button.style.paddingLeft = `${6 + node.depth * 14}px`;
     button.title = `${node.sceneName} · [${node.instanceId}]${node.hidden ? " · Hidden" : ""}`;
     button.innerHTML = `
-      <span class="hierarchy-arrow ${hasChildren ? "is-open" : "is-empty"}">${hasChildren ? "▾" : "·"}</span>
+      <span class="hierarchy-arrow hierarchy-arrow-toggle ${hasChildren ? (collapsed ? "is-collapsed" : "is-open") : "is-empty"}">${hasChildren ? (collapsed ? "▸" : "▾") : "·"}</span>
       <span class="hierarchy-icon"></span>
       <span class="hierarchy-item-main">
         <span class="hierarchy-name">${escapeHtml(node.name)}</span>
       </span>
     `;
-    button.addEventListener("click", () => {
+    button.addEventListener("click", (event) => {
+      if (hasChildren && event.target instanceof Element && event.target.closest(".hierarchy-arrow-toggle")) {
+        toggleHierarchyNode(node.instanceId);
+        return;
+      }
+
       state.selectedGameObjectId = node.instanceId;
       refreshInspector();
       renderHierarchy();
@@ -364,6 +372,61 @@ function renderHierarchy() {
   }
 
   elements.hierarchyList.appendChild(fragment);
+}
+
+function getVisibleHierarchyNodes() {
+  const visibleNodes = [];
+  const collapsedDepths = [];
+  for (let index = 0; index < state.hierarchy.length; index += 1) {
+    const node = state.hierarchy[index];
+    while (collapsedDepths.length && node.depth <= collapsedDepths[collapsedDepths.length - 1]) {
+      collapsedDepths.pop();
+    }
+
+    if (collapsedDepths.length) {
+      continue;
+    }
+
+    const hasChildren = hasHierarchyChildren(index);
+    const collapsed = hasChildren && state.collapsedHierarchyNodes.has(node.instanceId);
+    visibleNodes.push({ node, index, hasChildren, collapsed });
+    if (collapsed) {
+      collapsedDepths.push(node.depth);
+    }
+  }
+
+  return visibleNodes;
+}
+
+function hasHierarchyChildren(index) {
+  const node = state.hierarchy[index];
+  const nextNode = state.hierarchy[index + 1];
+  return Boolean(node && nextNode && nextNode.depth > node.depth);
+}
+
+function toggleHierarchyNode(instanceId) {
+  if (state.collapsedHierarchyNodes.has(instanceId)) {
+    state.collapsedHierarchyNodes.delete(instanceId);
+  } else {
+    state.collapsedHierarchyNodes.add(instanceId);
+  }
+
+  renderHierarchy();
+}
+
+function syncHierarchyCollapseState() {
+  const validIds = new Set();
+  for (let index = 0; index < state.hierarchy.length; index += 1) {
+    if (hasHierarchyChildren(index)) {
+      validIds.add(state.hierarchy[index].instanceId);
+    }
+  }
+
+  for (const instanceId of Array.from(state.collapsedHierarchyNodes)) {
+    if (!validIds.has(instanceId)) {
+      state.collapsedHierarchyNodes.delete(instanceId);
+    }
+  }
 }
 
 function renderInspector() {
