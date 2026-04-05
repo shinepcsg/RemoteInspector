@@ -27,6 +27,217 @@ namespace Aion.RemoteInspector.Internal
             ["physics"] = typeof(Physics)
         };
 
+        private static readonly ComponentPropertyDescriptor[] RectTransformPropertyDescriptors =
+        {
+            new("anchorMin", "Anchor Min"),
+            new("anchorMax", "Anchor Max"),
+            new("anchoredPosition", "Anchored Position"),
+            new("sizeDelta", "Size Delta"),
+            new("pivot", "Pivot"),
+            new("offsetMin", "Offset Min"),
+            new("offsetMax", "Offset Max")
+        };
+
+        private static readonly ComponentPropertyDescriptor[] CameraPropertyDescriptors =
+        {
+            new("clearFlags", "Clear Flags"),
+            new("backgroundColor", "Background"),
+            new("cullingMask", "Culling Mask"),
+            new("orthographic", "Orthographic"),
+            new("orthographicSize", "Orthographic Size"),
+            new("fieldOfView", "Field Of View"),
+            new("nearClipPlane", "Near Clip Plane"),
+            new("farClipPlane", "Far Clip Plane"),
+            new("depth", "Depth"),
+            new("renderingPath", "Rendering Path"),
+            new("allowHDR", "Allow HDR"),
+            new("allowMSAA", "Allow MSAA"),
+            new("useOcclusionCulling", "Use Occlusion Culling"),
+            new("targetDisplay", "Target Display")
+        };
+
+        private static readonly ComponentPropertyDescriptor[] LightPropertyDescriptors =
+        {
+            new("type", "Type"),
+            new("shape", "Shape"),
+            new("range", "Range"),
+            new("spotAngle", "Spot Angle"),
+            new("innerSpotAngle", "Inner Spot Angle"),
+            new("color", "Color"),
+            new("intensity", "Intensity"),
+            new("bounceIntensity", "Bounce Intensity"),
+            new("shadows", "Shadows"),
+            new("renderMode", "Render Mode"),
+            new("cullingMask", "Culling Mask"),
+            new("cookieSize", "Cookie Size"),
+            new("useColorTemperature", "Use Color Temperature"),
+            new("colorTemperature", "Color Temperature"),
+            new("cookie", "Cookie", false),
+            new("flare", "Flare", false)
+        };
+
+        private static readonly ComponentPropertyDescriptor[] AudioSourcePropertyDescriptors =
+        {
+            new("clip", "Clip", false),
+            new("outputAudioMixerGroup", "Output", false),
+            new("playOnAwake", "Play On Awake"),
+            new("loop", "Loop"),
+            new("mute", "Mute"),
+            new("priority", "Priority"),
+            new("volume", "Volume"),
+            new("pitch", "Pitch"),
+            new("panStereo", "Stereo Pan"),
+            new("spatialBlend", "Spatial Blend"),
+            new("reverbZoneMix", "Reverb Zone Mix"),
+            new("dopplerLevel", "Doppler Level"),
+            new("spread", "Spread"),
+            new("minDistance", "Min Distance"),
+            new("maxDistance", "Max Distance")
+        };
+
+        private static readonly ComponentPropertyDescriptor[] RigidbodyPropertyDescriptors =
+        {
+            new("mass", "Mass"),
+            new("linearDamping", "Linear Damping"),
+            new("angularDamping", "Angular Damping"),
+            new("useGravity", "Use Gravity"),
+            new("isKinematic", "Is Kinematic"),
+            new("interpolation", "Interpolation"),
+            new("collisionDetectionMode", "Collision Detection"),
+            new("constraints", "Constraints"),
+            new("centerOfMass", "Center Of Mass"),
+            new("linearVelocity", "Linear Velocity"),
+            new("angularVelocity", "Angular Velocity"),
+            new("detectCollisions", "Detect Collisions")
+        };
+
+        private static readonly ComponentPropertyDescriptor[] Rigidbody2DPropertyDescriptors =
+        {
+            new("bodyType", "Body Type"),
+            new("mass", "Mass"),
+            new("gravityScale", "Gravity Scale"),
+            new("linearDamping", "Linear Damping"),
+            new("angularDamping", "Angular Damping"),
+            new("constraints", "Constraints"),
+            new("interpolation", "Interpolation"),
+            new("collisionDetectionMode", "Collision Detection"),
+            new("simulated", "Simulated"),
+            new("linearVelocity", "Linear Velocity"),
+            new("angularVelocity", "Angular Velocity")
+        };
+
+        private static readonly ComponentPropertyDescriptor[] RendererPropertyDescriptors =
+        {
+            new("sharedMaterial", "Material", false),
+            new("shadowCastingMode", "Cast Shadows"),
+            new("receiveShadows", "Receive Shadows"),
+            new("lightProbeUsage", "Light Probes"),
+            new("reflectionProbeUsage", "Reflection Probes"),
+            new("sortingLayerID", "Sorting Layer"),
+            new("sortingOrder", "Order In Layer"),
+            new("allowOcclusionWhenDynamic", "Dynamic Occlusion")
+        };
+
+        private static readonly ComponentPropertyDescriptor[] SpriteRendererPropertyDescriptors =
+        {
+            new("sprite", "Sprite", false),
+            new("color", "Color"),
+            new("flipX", "Flip X"),
+            new("flipY", "Flip Y"),
+            new("drawMode", "Draw Mode"),
+            new("size", "Size"),
+            new("maskInteraction", "Mask Interaction"),
+            new("tileMode", "Tile Mode"),
+            new("adaptiveModeThreshold", "Adaptive Mode Threshold"),
+            new("sortPoint", "Sort Point")
+        };
+
+        private static readonly ComponentPropertyDescriptor[] ColliderPropertyDescriptors =
+        {
+            new("isTrigger", "Is Trigger"),
+            new("contactOffset", "Contact Offset"),
+            new("sharedMaterial", "Material", false)
+        };
+
+        private static readonly ComponentPropertyDescriptor[] BoxColliderPropertyDescriptors =
+        {
+            new("center", "Center"),
+            new("size", "Size")
+        };
+
+        private static readonly ComponentPropertyDescriptor[] SphereColliderPropertyDescriptors =
+        {
+            new("center", "Center"),
+            new("radius", "Radius")
+        };
+
+        private static readonly ComponentPropertyDescriptor[] CapsuleColliderPropertyDescriptors =
+        {
+            new("center", "Center"),
+            new("radius", "Radius"),
+            new("height", "Height"),
+            new("direction", "Direction")
+        };
+
+        private static readonly ComponentPropertyDescriptor[] MeshColliderPropertyDescriptors =
+        {
+            new("sharedMesh", "Mesh", false),
+            new("convex", "Convex"),
+            new("cookingOptions", "Cooking Options")
+        };
+
+        private static readonly ComponentPropertyDescriptor[] Collider2DPropertyDescriptors =
+        {
+            new("offset", "Offset"),
+            new("isTrigger", "Is Trigger"),
+            new("density", "Density"),
+            new("usedByEffector", "Used By Effector"),
+            new("sharedMaterial", "Material", false)
+        };
+
+        private static readonly ComponentPropertyDescriptor[] BoxCollider2DPropertyDescriptors =
+        {
+            new("size", "Size"),
+            new("edgeRadius", "Edge Radius"),
+            new("autoTiling", "Auto Tiling")
+        };
+
+        private static readonly ComponentPropertyDescriptor[] CircleCollider2DPropertyDescriptors =
+        {
+            new("radius", "Radius")
+        };
+
+        private static readonly ComponentPropertyDescriptor[] CapsuleCollider2DPropertyDescriptors =
+        {
+            new("size", "Size"),
+            new("direction", "Direction")
+        };
+
+        private static readonly ComponentPropertyDescriptor[] AnimatorPropertyDescriptors =
+        {
+            new("applyRootMotion", "Apply Root Motion"),
+            new("updateMode", "Update Mode"),
+            new("cullingMode", "Culling Mode"),
+            new("speed", "Speed"),
+            new("fireEvents", "Fire Events"),
+            new("logWarnings", "Log Warnings"),
+            new("avatar", "Avatar", false),
+            new("runtimeAnimatorController", "Controller", false)
+        };
+
+        private static readonly ComponentPropertyDescriptor[] CharacterControllerPropertyDescriptors =
+        {
+            new("center", "Center"),
+            new("radius", "Radius"),
+            new("height", "Height"),
+            new("slopeLimit", "Slope Limit"),
+            new("stepOffset", "Step Offset"),
+            new("skinWidth", "Skin Width"),
+            new("minMoveDistance", "Min Move Distance"),
+            new("detectCollisions", "Detect Collisions"),
+            new("enableOverlapRecovery", "Enable Overlap Recovery")
+        };
+
         public static HierarchyResponsePayload BuildHierarchy(HierarchyRequestPayload request)
         {
             var allNodes = new List<NodeRecord>(256);
@@ -547,12 +758,13 @@ namespace Aion.RemoteInspector.Internal
         {
             var members = new List<InspectorMemberDto>();
             AddComponentMembers(component, members);
+            var canToggleEnabled = TryGetComponentEnabledState(component, out var enabledState);
             return new InspectorComponentDto
             {
                 instanceId = component.GetInstanceID(),
                 typeName = component.GetType().Name,
-                enabled = component is Behaviour behaviour ? behaviour.enabled : true,
-                canToggleEnabled = component is Behaviour,
+                enabled = enabledState,
+                canToggleEnabled = canToggleEnabled,
                 canDestroy = component is not Transform,
                 members = members.ToArray()
             };
@@ -569,9 +781,9 @@ namespace Aion.RemoteInspector.Internal
         private static void AddComponentMembers(Component component, List<InspectorMemberDto> members)
         {
             var type = component.GetType();
-            if (component is Behaviour behaviour)
+            if (TryGetComponentEnabledState(component, out var enabledState))
             {
-                members.Add(CreateMember("enabled", "Enabled", typeof(bool), behaviour.enabled, true, 0));
+                members.Add(CreateMember("enabled", "Enabled", typeof(bool), enabledState, true, 0));
             }
 
             if (component is Transform transform)
@@ -588,7 +800,9 @@ namespace Aion.RemoteInspector.Internal
                 AddExpandedSpecialLeafMembers("localScale", typeof(Vector3), transform.localScale, 0, members);
             }
 
-            var seenPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var seenPaths = new HashSet<string>(members.Select(member => member.path), StringComparer.OrdinalIgnoreCase);
+            AddBuiltInComponentMembers(component, seenPaths, members);
+
             foreach (var field in GetSerializableFields(type))
             {
                 if (!seenPaths.Add(field.Name))
@@ -598,6 +812,179 @@ namespace Aion.RemoteInspector.Internal
 
                 AddFieldMembers(component, field, field.Name, 0, members);
             }
+        }
+
+        private static bool TryGetComponentEnabledState(Component component, out bool enabled)
+        {
+            enabled = true;
+            var member = FindMember(component.GetType(), "enabled", false);
+            if (member == null || !CanReadMember(member) || GetMemberType(member) != typeof(bool))
+            {
+                return false;
+            }
+
+            try
+            {
+                enabled = (bool)GetMemberValue(component, member);
+                return IsMemberWritable(member);
+            }
+            catch
+            {
+                enabled = true;
+                return false;
+            }
+        }
+
+        private static void AddBuiltInComponentMembers(Component component, HashSet<string> seenPaths, List<InspectorMemberDto> members)
+        {
+            if (component is RectTransform rectTransform)
+            {
+                AddNamedMembers(rectTransform, RectTransformPropertyDescriptors, seenPaths, members);
+            }
+
+            if (component is Camera camera)
+            {
+                AddNamedMembers(camera, CameraPropertyDescriptors, seenPaths, members);
+            }
+
+            if (component is Light light)
+            {
+                AddNamedMembers(light, LightPropertyDescriptors, seenPaths, members);
+            }
+
+            if (component is AudioSource audioSource)
+            {
+                AddNamedMembers(audioSource, AudioSourcePropertyDescriptors, seenPaths, members);
+            }
+
+            if (component is Rigidbody rigidbody)
+            {
+                AddNamedMembers(rigidbody, RigidbodyPropertyDescriptors, seenPaths, members);
+            }
+
+            if (component is Rigidbody2D rigidbody2D)
+            {
+                AddNamedMembers(rigidbody2D, Rigidbody2DPropertyDescriptors, seenPaths, members);
+            }
+
+            if (component is Renderer renderer)
+            {
+                AddNamedMembers(renderer, RendererPropertyDescriptors, seenPaths, members);
+            }
+
+            if (component is SpriteRenderer spriteRenderer)
+            {
+                AddNamedMembers(spriteRenderer, SpriteRendererPropertyDescriptors, seenPaths, members);
+            }
+
+            if (component is Collider collider)
+            {
+                AddNamedMembers(collider, ColliderPropertyDescriptors, seenPaths, members);
+            }
+
+            if (component is BoxCollider boxCollider)
+            {
+                AddNamedMembers(boxCollider, BoxColliderPropertyDescriptors, seenPaths, members);
+            }
+
+            if (component is SphereCollider sphereCollider)
+            {
+                AddNamedMembers(sphereCollider, SphereColliderPropertyDescriptors, seenPaths, members);
+            }
+
+            if (component is CapsuleCollider capsuleCollider)
+            {
+                AddNamedMembers(capsuleCollider, CapsuleColliderPropertyDescriptors, seenPaths, members);
+            }
+
+            if (component is MeshCollider meshCollider)
+            {
+                AddNamedMembers(meshCollider, MeshColliderPropertyDescriptors, seenPaths, members);
+            }
+
+            if (component is Collider2D collider2D)
+            {
+                AddNamedMembers(collider2D, Collider2DPropertyDescriptors, seenPaths, members);
+            }
+
+            if (component is BoxCollider2D boxCollider2D)
+            {
+                AddNamedMembers(boxCollider2D, BoxCollider2DPropertyDescriptors, seenPaths, members);
+            }
+
+            if (component is CircleCollider2D circleCollider2D)
+            {
+                AddNamedMembers(circleCollider2D, CircleCollider2DPropertyDescriptors, seenPaths, members);
+            }
+
+            if (component is CapsuleCollider2D capsuleCollider2D)
+            {
+                AddNamedMembers(capsuleCollider2D, CapsuleCollider2DPropertyDescriptors, seenPaths, members);
+            }
+
+            if (component is Animator animator)
+            {
+                AddNamedMembers(animator, AnimatorPropertyDescriptors, seenPaths, members);
+            }
+
+            if (component is CharacterController characterController)
+            {
+                AddNamedMembers(characterController, CharacterControllerPropertyDescriptors, seenPaths, members);
+            }
+        }
+
+        private static void AddNamedMembers(object target, IReadOnlyList<ComponentPropertyDescriptor> descriptors, HashSet<string> seenPaths, List<InspectorMemberDto> members)
+        {
+            var targetType = target.GetType();
+            for (var index = 0; index < descriptors.Count; index++)
+            {
+                TryAddNamedMember(target, targetType, descriptors[index], seenPaths, members);
+            }
+        }
+
+        private static void TryAddNamedMember(object target, Type targetType, ComponentPropertyDescriptor descriptor, HashSet<string> seenPaths, List<InspectorMemberDto> members)
+        {
+            if (!seenPaths.Add(descriptor.Path))
+            {
+                return;
+            }
+
+            var member = FindMember(targetType, descriptor.Path, false);
+            if (member == null || !CanReadMember(member))
+            {
+                seenPaths.Remove(descriptor.Path);
+                return;
+            }
+
+            object value;
+            try
+            {
+                value = GetMemberValue(target, member);
+            }
+            catch
+            {
+                seenPaths.Remove(descriptor.Path);
+                return;
+            }
+
+            var memberType = GetMemberType(member);
+            if (ValueCodec.IsLeafType(memberType))
+            {
+                var editable = descriptor.Editable && IsMemberWritable(member) && ValueCodec.IsEditableType(memberType);
+                members.Add(CreateMember(descriptor.Path, descriptor.Label, memberType, value, editable, 0));
+                AddExpandedSpecialLeafMembers(descriptor.Path, memberType, value, 0, members);
+                return;
+            }
+
+            if (ValueCodec.IsEditableCollection(memberType))
+            {
+                var editable = descriptor.Editable && IsMemberWritable(member);
+                members.Add(CreateMember(descriptor.Path, descriptor.Label, memberType, value, editable, 0));
+                AddCollectionMembers(descriptor.Path, memberType, value, 0, members);
+                return;
+            }
+
+            members.Add(CreateSummaryMember(descriptor.Path, descriptor.Label, memberType, value, 0));
         }
 
         private static void AddFieldMembers(object root, FieldInfo field, string path, int depth, List<InspectorMemberDto> members)
@@ -617,7 +1004,11 @@ namespace Aion.RemoteInspector.Internal
                     value = "(unavailable)",
                     editable = false,
                     multiline = false,
-                    depth = depth
+                    depth = depth,
+                    controlHint = "summary",
+                    options = Array.Empty<string>(),
+                    referenceTypeName = string.Empty,
+                    referenceInstanceId = 0
                 });
                 return;
             }
@@ -636,16 +1027,7 @@ namespace Aion.RemoteInspector.Internal
                 return;
             }
 
-            members.Add(new InspectorMemberDto
-            {
-                path = path,
-                label = Nicify(field.Name),
-                typeName = field.FieldType.Name,
-                value = ValueCodec.FormatSummary(value, field.FieldType),
-                editable = false,
-                multiline = false,
-                depth = depth
-            });
+            members.Add(CreateSummaryMember(path, Nicify(field.Name), field.FieldType, value, depth));
 
             if (value == null || depth >= MaxInspectionDepth || !IsInspectableComposite(field.FieldType))
             {
@@ -689,7 +1071,11 @@ namespace Aion.RemoteInspector.Internal
                     value = "...",
                     editable = false,
                     multiline = false,
-                    depth = depth + 1
+                    depth = depth + 1,
+                    controlHint = "summary",
+                    options = Array.Empty<string>(),
+                    referenceTypeName = string.Empty,
+                    referenceInstanceId = 0
                 });
             }
         }
@@ -710,16 +1096,7 @@ namespace Aion.RemoteInspector.Internal
                 return;
             }
 
-            members.Add(new InspectorMemberDto
-            {
-                path = path,
-                label = label,
-                typeName = type.Name,
-                value = ValueCodec.FormatSummary(value, type),
-                editable = false,
-                multiline = false,
-                depth = depth
-            });
+            members.Add(CreateSummaryMember(path, label, type, value, depth));
 
             if (value == null || depth >= MaxInspectionDepth || !IsInspectableComposite(type))
             {
@@ -749,12 +1126,27 @@ namespace Aion.RemoteInspector.Internal
                     members.Add(CreateMember($"{path}.y", "Y", typeof(float), vector.y, true, depth + 1));
                     break;
                 }
+                case var _ when type == typeof(Vector2Int):
+                {
+                    var vector = (Vector2Int)value;
+                    members.Add(CreateMember($"{path}.x", "X", typeof(int), vector.x, true, depth + 1));
+                    members.Add(CreateMember($"{path}.y", "Y", typeof(int), vector.y, true, depth + 1));
+                    break;
+                }
                 case var _ when type == typeof(Vector3):
                 {
                     var vector = (Vector3)value;
                     members.Add(CreateMember($"{path}.x", "X", typeof(float), vector.x, true, depth + 1));
                     members.Add(CreateMember($"{path}.y", "Y", typeof(float), vector.y, true, depth + 1));
                     members.Add(CreateMember($"{path}.z", "Z", typeof(float), vector.z, true, depth + 1));
+                    break;
+                }
+                case var _ when type == typeof(Vector3Int):
+                {
+                    var vector = (Vector3Int)value;
+                    members.Add(CreateMember($"{path}.x", "X", typeof(int), vector.x, true, depth + 1));
+                    members.Add(CreateMember($"{path}.y", "Y", typeof(int), vector.y, true, depth + 1));
+                    members.Add(CreateMember($"{path}.z", "Z", typeof(int), vector.z, true, depth + 1));
                     break;
                 }
                 case var _ when type == typeof(Vector4):
@@ -801,6 +1193,15 @@ namespace Aion.RemoteInspector.Internal
                     members.Add(CreateMember($"{path}.height", "Height", typeof(float), rect.height, true, depth + 1));
                     break;
                 }
+                case var _ when type == typeof(RectInt):
+                {
+                    var rect = (RectInt)value;
+                    members.Add(CreateMember($"{path}.x", "X", typeof(int), rect.x, true, depth + 1));
+                    members.Add(CreateMember($"{path}.y", "Y", typeof(int), rect.y, true, depth + 1));
+                    members.Add(CreateMember($"{path}.width", "Width", typeof(int), rect.width, true, depth + 1));
+                    members.Add(CreateMember($"{path}.height", "Height", typeof(int), rect.height, true, depth + 1));
+                    break;
+                }
                 case var _ when type == typeof(Bounds):
                 {
                     var bounds = (Bounds)value;
@@ -808,6 +1209,15 @@ namespace Aion.RemoteInspector.Internal
                     AddExpandedSpecialLeafMembers($"{path}.center", typeof(Vector3), bounds.center, depth + 1, members);
                     members.Add(CreateMember($"{path}.size", "Size", typeof(Vector3), bounds.size, true, depth + 1));
                     AddExpandedSpecialLeafMembers($"{path}.size", typeof(Vector3), bounds.size, depth + 1, members);
+                    break;
+                }
+                case var _ when type == typeof(BoundsInt):
+                {
+                    var bounds = (BoundsInt)value;
+                    members.Add(CreateMember($"{path}.position", "Position", typeof(Vector3Int), bounds.position, true, depth + 1));
+                    AddExpandedSpecialLeafMembers($"{path}.position", typeof(Vector3Int), bounds.position, depth + 1, members);
+                    members.Add(CreateMember($"{path}.size", "Size", typeof(Vector3Int), bounds.size, true, depth + 1));
+                    AddExpandedSpecialLeafMembers($"{path}.size", typeof(Vector3Int), bounds.size, depth + 1, members);
                     break;
                 }
             }
@@ -842,15 +1252,39 @@ namespace Aion.RemoteInspector.Internal
 
         private static InspectorMemberDto CreateMember(string path, string label, Type type, object value, bool editable, int depth)
         {
+            type = Nullable.GetUnderlyingType(type) ?? type;
             return new InspectorMemberDto
             {
                 path = path,
                 label = label,
                 typeName = type.Name,
                 value = ValueCodec.Format(value, type),
-                editable = editable,
+                editable = editable && ValueCodec.IsEditableType(type),
                 multiline = type == typeof(string) && (value as string)?.IndexOf('\n') >= 0,
-                depth = depth
+                depth = depth,
+                controlHint = ValueCodec.GetControlHint(type),
+                options = ValueCodec.GetOptions(type),
+                referenceTypeName = ValueCodec.IsObjectReferenceType(type) ? type.Name : string.Empty,
+                referenceInstanceId = value is Object unityObject ? unityObject.GetInstanceID() : 0
+            };
+        }
+
+        private static InspectorMemberDto CreateSummaryMember(string path, string label, Type type, object value, int depth)
+        {
+            type = Nullable.GetUnderlyingType(type) ?? type;
+            return new InspectorMemberDto
+            {
+                path = path,
+                label = label,
+                typeName = type.Name,
+                value = ValueCodec.FormatSummary(value, type),
+                editable = false,
+                multiline = false,
+                depth = depth,
+                controlHint = "summary",
+                options = Array.Empty<string>(),
+                referenceTypeName = ValueCodec.IsObjectReferenceType(type) ? type.Name : string.Empty,
+                referenceInstanceId = value is Object unityObject ? unityObject.GetInstanceID() : 0
             };
         }
 
@@ -1325,7 +1759,7 @@ namespace Aion.RemoteInspector.Internal
                     field.SetValue(target, value);
                     return true;
                 case PropertyInfo property:
-                    if (!property.CanWrite)
+                    if (!IsMemberWritable(property))
                     {
                         error = $"Property '{property.Name}' is read-only.";
                         return false;
@@ -1349,6 +1783,26 @@ namespace Aion.RemoteInspector.Internal
             };
         }
 
+        private static bool CanReadMember(MemberInfo member)
+        {
+            return member switch
+            {
+                FieldInfo => true,
+                PropertyInfo property => property.CanRead && property.GetIndexParameters().Length == 0,
+                _ => false
+            };
+        }
+
+        private static bool IsMemberWritable(MemberInfo member)
+        {
+            return member switch
+            {
+                FieldInfo field => !field.IsInitOnly && !field.IsLiteral,
+                PropertyInfo property => property.CanWrite && property.GetIndexParameters().Length == 0,
+                _ => false
+            };
+        }
+
         private static Type GetMemberType(MemberInfo member)
         {
             return member switch
@@ -1364,7 +1818,8 @@ namespace Aion.RemoteInspector.Internal
             var flags = BindingFlags.Public | BindingFlags.NonPublic | (isStatic ? BindingFlags.Static : BindingFlags.Instance);
             foreach (var property in type.GetProperties(flags))
             {
-                if (string.Equals(property.Name, memberName, StringComparison.OrdinalIgnoreCase))
+                if (property.GetIndexParameters().Length == 0 &&
+                    string.Equals(property.Name, memberName, StringComparison.OrdinalIgnoreCase))
                 {
                     return property;
                 }
@@ -1447,6 +1902,22 @@ namespace Aion.RemoteInspector.Internal
             public NodeRecord Parent;
         }
 
+        private readonly struct ComponentPropertyDescriptor
+        {
+            public ComponentPropertyDescriptor(string path, string label, bool editable = true)
+            {
+                Path = path ?? string.Empty;
+                Label = label ?? string.Empty;
+                Editable = editable;
+            }
+
+            public string Path { get; }
+
+            public string Label { get; }
+
+            public bool Editable { get; }
+        }
+
         private static class ValueCodec
         {
             public static bool IsLeafType(Type type)
@@ -1457,25 +1928,140 @@ namespace Aion.RemoteInspector.Internal
                        type == typeof(string) ||
                        type == typeof(decimal) ||
                        type == typeof(Vector2) ||
+                       type == typeof(Vector2Int) ||
                        type == typeof(Vector3) ||
+                       type == typeof(Vector3Int) ||
                        type == typeof(Vector4) ||
                        type == typeof(Quaternion) ||
                        type == typeof(Color) ||
                        type == typeof(Color32) ||
                        type == typeof(Rect) ||
+                       type == typeof(RectInt) ||
                        type == typeof(Bounds) ||
-                       type == typeof(LayerMask);
+                       type == typeof(BoundsInt) ||
+                       type == typeof(LayerMask) ||
+                       IsObjectReferenceType(type);
             }
 
             public static bool IsEditableType(Type type)
             {
-                return IsLeafType(type);
+                type = Nullable.GetUnderlyingType(type) ?? type;
+                return IsLeafType(type) && !IsObjectReferenceType(type);
+            }
+
+            public static bool IsObjectReferenceType(Type type)
+            {
+                type = Nullable.GetUnderlyingType(type) ?? type;
+                return typeof(Object).IsAssignableFrom(type);
+            }
+
+            public static string GetControlHint(Type type)
+            {
+                type = Nullable.GetUnderlyingType(type) ?? type;
+                if (type == typeof(string))
+                {
+                    return "text";
+                }
+
+                if (type == typeof(bool))
+                {
+                    return "bool";
+                }
+
+                if (type.IsEnum)
+                {
+                    return "enum";
+                }
+
+                if (IsObjectReferenceType(type))
+                {
+                    return "object";
+                }
+
+                if (type == typeof(float) || type == typeof(double) || type == typeof(decimal))
+                {
+                    return "number";
+                }
+
+                if (type == typeof(int) || type == typeof(uint) || type == typeof(long) || type == typeof(ulong) ||
+                    type == typeof(short) || type == typeof(ushort) || type == typeof(byte) || type == typeof(sbyte))
+                {
+                    return "integer";
+                }
+
+                if (type == typeof(Vector2))
+                {
+                    return "vector2";
+                }
+
+                if (type == typeof(Vector2Int))
+                {
+                    return "vector2int";
+                }
+
+                if (type == typeof(Vector3))
+                {
+                    return "vector3";
+                }
+
+                if (type == typeof(Vector3Int))
+                {
+                    return "vector3int";
+                }
+
+                if (type == typeof(Vector4))
+                {
+                    return "vector4";
+                }
+
+                if (type == typeof(Quaternion))
+                {
+                    return "quaternion";
+                }
+
+                if (type == typeof(Color) || type == typeof(Color32))
+                {
+                    return "color";
+                }
+
+                if (type == typeof(Rect))
+                {
+                    return "rect";
+                }
+
+                if (type == typeof(RectInt))
+                {
+                    return "rectint";
+                }
+
+                if (type == typeof(Bounds))
+                {
+                    return "bounds";
+                }
+
+                if (type == typeof(BoundsInt))
+                {
+                    return "boundsint";
+                }
+
+                if (type == typeof(LayerMask))
+                {
+                    return "layermask";
+                }
+
+                return "text";
+            }
+
+            public static string[] GetOptions(Type type)
+            {
+                type = Nullable.GetUnderlyingType(type) ?? type;
+                return type.IsEnum ? Enum.GetNames(type) : Array.Empty<string>();
             }
 
             public static bool IsEditableCollection(Type type)
             {
                 var elementType = GetElementType(type);
-                return elementType != null && IsLeafType(elementType);
+                return elementType != null && IsLeafType(elementType) && !IsObjectReferenceType(elementType);
             }
 
             public static string FormatSummary(object value, Type type)
@@ -1485,9 +2071,15 @@ namespace Aion.RemoteInspector.Internal
                     return "null";
                 }
 
+                type = Nullable.GetUnderlyingType(type) ?? type;
                 if (value is IList list)
                 {
                     return $"{type.Name} ({list.Count})";
+                }
+
+                if (IsObjectReferenceType(type))
+                {
+                    return Format(value, type);
                 }
 
                 return type.Name;
@@ -1526,16 +2118,33 @@ namespace Aion.RemoteInspector.Internal
                     return ((double)value).ToString("0.###", CultureInfo.InvariantCulture);
                 }
 
+                if (type == typeof(decimal))
+                {
+                    return ((decimal)value).ToString(CultureInfo.InvariantCulture);
+                }
+
                 if (type == typeof(Vector2))
                 {
                     var vector = (Vector2)value;
                     return $"[{vector.x:0.###}, {vector.y:0.###}]";
                 }
 
+                if (type == typeof(Vector2Int))
+                {
+                    var vector = (Vector2Int)value;
+                    return $"[{vector.x}, {vector.y}]";
+                }
+
                 if (type == typeof(Vector3))
                 {
                     var vector = (Vector3)value;
                     return $"[{vector.x:0.###}, {vector.y:0.###}, {vector.z:0.###}]";
+                }
+
+                if (type == typeof(Vector3Int))
+                {
+                    var vector = (Vector3Int)value;
+                    return $"[{vector.x}, {vector.y}, {vector.z}]";
                 }
 
                 if (type == typeof(Vector4))
@@ -1566,10 +2175,22 @@ namespace Aion.RemoteInspector.Internal
                     return $"[{rect.x:0.###}, {rect.y:0.###}, {rect.width:0.###}, {rect.height:0.###}]";
                 }
 
+                if (type == typeof(RectInt))
+                {
+                    var rect = (RectInt)value;
+                    return $"[{rect.x}, {rect.y}, {rect.width}, {rect.height}]";
+                }
+
                 if (type == typeof(Bounds))
                 {
                     var bounds = (Bounds)value;
                     return $"[{bounds.center.x:0.###}, {bounds.center.y:0.###}, {bounds.center.z:0.###}, {bounds.size.x:0.###}, {bounds.size.y:0.###}, {bounds.size.z:0.###}]";
+                }
+
+                if (type == typeof(BoundsInt))
+                {
+                    var bounds = (BoundsInt)value;
+                    return $"[{bounds.position.x}, {bounds.position.y}, {bounds.position.z}, {bounds.size.x}, {bounds.size.y}, {bounds.size.z}]";
                 }
 
                 if (type == typeof(LayerMask))
@@ -1620,7 +2241,7 @@ namespace Aion.RemoteInspector.Internal
                     return true;
                 }
 
-                if (string.IsNullOrWhiteSpace(rawValue))
+                if (IsObjectReferenceType(targetType) || string.IsNullOrWhiteSpace(rawValue))
                 {
                     return false;
                 }
@@ -1637,6 +2258,48 @@ namespace Aion.RemoteInspector.Internal
                     return true;
                 }
 
+                if (targetType == typeof(uint) && uint.TryParse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var uintValue))
+                {
+                    value = uintValue;
+                    return true;
+                }
+
+                if (targetType == typeof(long) && long.TryParse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var longValue))
+                {
+                    value = longValue;
+                    return true;
+                }
+
+                if (targetType == typeof(ulong) && ulong.TryParse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var ulongValue))
+                {
+                    value = ulongValue;
+                    return true;
+                }
+
+                if (targetType == typeof(short) && short.TryParse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var shortValue))
+                {
+                    value = shortValue;
+                    return true;
+                }
+
+                if (targetType == typeof(ushort) && ushort.TryParse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var ushortValue))
+                {
+                    value = ushortValue;
+                    return true;
+                }
+
+                if (targetType == typeof(byte) && byte.TryParse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var byteValue))
+                {
+                    value = byteValue;
+                    return true;
+                }
+
+                if (targetType == typeof(sbyte) && sbyte.TryParse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var sbyteValue))
+                {
+                    value = sbyteValue;
+                    return true;
+                }
+
                 if (targetType == typeof(float) && float.TryParse(rawValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var floatValue))
                 {
                     value = floatValue;
@@ -1649,27 +2312,15 @@ namespace Aion.RemoteInspector.Internal
                     return true;
                 }
 
-                if (targetType == typeof(long) && long.TryParse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var longValue))
-                {
-                    value = longValue;
-                    return true;
-                }
-
-                if (targetType == typeof(short) && short.TryParse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var shortValue))
-                {
-                    value = shortValue;
-                    return true;
-                }
-
-                if (targetType == typeof(byte) && byte.TryParse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var byteValue))
-                {
-                    value = byteValue;
-                    return true;
-                }
-
                 if (targetType == typeof(decimal) && decimal.TryParse(rawValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var decimalValue))
                 {
                     value = decimalValue;
+                    return true;
+                }
+
+                if (targetType == typeof(char) && rawValue.Length == 1)
+                {
+                    value = rawValue[0];
                     return true;
                 }
 
@@ -1698,6 +2349,18 @@ namespace Aion.RemoteInspector.Internal
                     return true;
                 }
 
+                if (targetType == typeof(Vector2Int))
+                {
+                    var values = ParseIntArray(rawValue, 2);
+                    if (values == null)
+                    {
+                        return false;
+                    }
+
+                    value = new Vector2Int(values[0], values[1]);
+                    return true;
+                }
+
                 if (targetType == typeof(Vector3))
                 {
                     var values = ParseFloatArray(rawValue, 3);
@@ -1707,6 +2370,18 @@ namespace Aion.RemoteInspector.Internal
                     }
 
                     value = new Vector3(values[0], values[1], values[2]);
+                    return true;
+                }
+
+                if (targetType == typeof(Vector3Int))
+                {
+                    var values = ParseIntArray(rawValue, 3);
+                    if (values == null)
+                    {
+                        return false;
+                    }
+
+                    value = new Vector3Int(values[0], values[1], values[2]);
                     return true;
                 }
 
@@ -1762,7 +2437,16 @@ namespace Aion.RemoteInspector.Internal
                         return true;
                     }
 
-                    return false;
+                    var values = ParseIntArray(rawValue, 3, 4);
+                    if (values == null)
+                    {
+                        return false;
+                    }
+
+                    value = values.Length == 4
+                        ? new Color32((byte)values[0], (byte)values[1], (byte)values[2], (byte)values[3])
+                        : new Color32((byte)values[0], (byte)values[1], (byte)values[2], 255);
+                    return true;
                 }
 
                 if (targetType == typeof(Rect))
@@ -1774,6 +2458,18 @@ namespace Aion.RemoteInspector.Internal
                     }
 
                     value = new Rect(values[0], values[1], values[2], values[3]);
+                    return true;
+                }
+
+                if (targetType == typeof(RectInt))
+                {
+                    var values = ParseIntArray(rawValue, 4);
+                    if (values == null)
+                    {
+                        return false;
+                    }
+
+                    value = new RectInt(values[0], values[1], values[2], values[3]);
                     return true;
                 }
 
@@ -1789,6 +2485,18 @@ namespace Aion.RemoteInspector.Internal
                     return true;
                 }
 
+                if (targetType == typeof(BoundsInt))
+                {
+                    var values = ParseIntArray(rawValue, 6);
+                    if (values == null)
+                    {
+                        return false;
+                    }
+
+                    value = new BoundsInt(values[0], values[1], values[2], values[3], values[4], values[5]);
+                    return true;
+                }
+
                 if (targetType == typeof(LayerMask) && int.TryParse(rawValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var layerValue))
                 {
                     value = (LayerMask)layerValue;
@@ -1796,7 +2504,7 @@ namespace Aion.RemoteInspector.Internal
                 }
 
                 var elementType = GetElementType(targetType);
-                if (elementType != null)
+                if (elementType != null && !IsObjectReferenceType(elementType))
                 {
                     var tokens = SplitCollection(rawValue);
                     var list = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(elementType));
@@ -1852,6 +2560,26 @@ namespace Aion.RemoteInspector.Internal
                 for (var index = 0; index < parts.Count; index++)
                 {
                     if (!float.TryParse(parts[index], NumberStyles.Float, CultureInfo.InvariantCulture, out values[index]))
+                    {
+                        return null;
+                    }
+                }
+
+                return values;
+            }
+
+            private static int[] ParseIntArray(string rawValue, params int[] allowedSizes)
+            {
+                var parts = SplitCollection(rawValue);
+                if (!allowedSizes.Contains(parts.Count))
+                {
+                    return null;
+                }
+
+                var values = new int[parts.Count];
+                for (var index = 0; index < parts.Count; index++)
+                {
+                    if (!int.TryParse(parts[index], NumberStyles.Integer, CultureInfo.InvariantCulture, out values[index]))
                     {
                         return null;
                     }

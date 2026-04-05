@@ -525,15 +525,21 @@ function buildComponentSection(component) {
 
   const body = document.createElement("div");
   body.className = "component-body";
-  for (const member of component.members || []) {
-    body.appendChild(buildPropertyRow(member, component.instanceId));
+  const members = component.members || [];
+  const hiddenPaths = new Set();
+  for (const member of members) {
+    if (hiddenPaths.has(member.path)) {
+      continue;
+    }
+
+    body.appendChild(buildPropertyRow(member, members, hiddenPaths, component.instanceId));
   }
   card.appendChild(body);
 
   return card;
 }
 
-function buildPropertyRow(member, componentInstanceId) {
+function buildPropertyRow(member, allMembers, hiddenPaths, componentInstanceId) {
   const row = document.createElement("div");
   row.className = `property-row property-indent-${Math.min(member.depth || 0, 5)}`;
 
@@ -552,12 +558,9 @@ function buildPropertyRow(member, componentInstanceId) {
   inline.className = "property-inline";
 
   if (member.editable) {
-    inline.appendChild(buildEditableControl(member, componentInstanceId));
+    inline.appendChild(buildEditableControl(member, allMembers, hiddenPaths, componentInstanceId));
   } else {
-    const readonly = document.createElement("div");
-    readonly.className = "property-value-readonly";
-    readonly.textContent = member.value;
-    inline.appendChild(readonly);
+    inline.appendChild(buildReadonlyControl(member));
   }
 
   const typeTag = document.createElement("span");
@@ -570,7 +573,12 @@ function buildPropertyRow(member, componentInstanceId) {
   return row;
 }
 
-function buildEditableControl(member, componentInstanceId) {
+function buildEditableControl(member, allMembers, hiddenPaths, componentInstanceId) {
+  const composite = tryBuildCompositeControl(member, allMembers, hiddenPaths, componentInstanceId);
+  if (composite) {
+    return composite;
+  }
+
   if (isBooleanMember(member)) {
     const wrapper = document.createElement("label");
     wrapper.className = "property-checkbox-line";
@@ -587,6 +595,20 @@ function buildEditableControl(member, componentInstanceId) {
     return wrapper;
   }
 
+  if (hasEnumOptions(member)) {
+    const select = document.createElement("select");
+    select.className = "property-select";
+    for (const optionValue of member.options || []) {
+      const option = document.createElement("option");
+      option.value = optionValue;
+      option.textContent = optionValue;
+      select.appendChild(option);
+    }
+    select.value = member.value;
+    bindInputCommit(select, member, componentInstanceId);
+    return select;
+  }
+
   if (member.multiline) {
     const textarea = document.createElement("textarea");
     textarea.className = "property-textarea";
@@ -596,11 +618,161 @@ function buildEditableControl(member, componentInstanceId) {
   }
 
   const input = document.createElement("input");
-  input.type = "text";
+  input.type = isNumericMember(member) ? "number" : "text";
   input.className = "property-input";
+  if (input.type === "number") {
+    input.step = isIntegerMember(member) ? "1" : "any";
+  }
   input.value = member.value === "null" ? "" : member.value;
   bindInputCommit(input, member, componentInstanceId);
   return input;
+}
+
+function buildReadonlyControl(member) {
+  if ((member.controlHint || "") === "object") {
+    const objectRef = document.createElement("div");
+    objectRef.className = "object-reference-field";
+    objectRef.textContent = member.value === "null"
+      ? `None (${member.referenceTypeName || member.typeName || "Object"})`
+      : member.value;
+    return objectRef;
+  }
+
+  const readonly = document.createElement("div");
+  readonly.className = "property-value-readonly";
+  readonly.textContent = member.value;
+  return readonly;
+}
+
+function tryBuildCompositeControl(member, allMembers, hiddenPaths, componentInstanceId) {
+  const descriptor = getCompositeDescriptor(member);
+  if (!descriptor) {
+    return null;
+  }
+
+  const childMembers = descriptor.suffixes
+    .map((suffix) => findMember(allMembers, `${member.path}${suffix}`))
+    .filter(Boolean);
+
+  if (childMembers.length !== descriptor.suffixes.length) {
+    return null;
+  }
+
+  for (const child of childMembers) {
+    hiddenPaths.add(child.path);
+  }
+
+  return buildCompositeControl(member, childMembers, descriptor, componentInstanceId);
+}
+
+function buildCompositeControl(member, childMembers, descriptor, componentInstanceId) {
+  const wrapper = document.createElement("div");
+  wrapper.className = `composite-field composite-${descriptor.kind}`;
+
+  if (descriptor.kind === "color") {
+    const preview = document.createElement("div");
+    preview.className = "color-preview";
+    wrapper.appendChild(preview);
+  }
+
+  const inputs = [];
+  for (let index = 0; index < childMembers.length; index += 1) {
+    const child = childMembers[index];
+    const cell = document.createElement("label");
+    cell.className = "composite-cell";
+
+    const axis = document.createElement("span");
+    axis.className = `composite-axis axis-${descriptor.axisLabels[index].toLowerCase()}`;
+    axis.textContent = descriptor.axisLabels[index];
+    cell.appendChild(axis);
+
+    const input = document.createElement("input");
+    input.type = "number";
+    input.className = "composite-input";
+    input.step = descriptor.integer ? "1" : "any";
+    input.value = child.value === "null" ? "" : child.value;
+    cell.appendChild(input);
+
+    wrapper.appendChild(cell);
+    inputs.push(input);
+  }
+
+  const serialize = () => `[${inputs.map((input) => normalizeCompositePart(input.value)).join(", ")}]`;
+  wrapper.dataset.lastCommitted = serialize();
+
+  const commit = () => {
+    const nextValue = serialize();
+    if ((wrapper.dataset.lastCommitted || "") === nextValue) {
+      return;
+    }
+
+    wrapper.dataset.lastCommitted = nextValue;
+    updateMember(componentInstanceId, member.path, nextValue);
+  };
+
+  for (const input of inputs) {
+    input.addEventListener("change", commit);
+    input.addEventListener("blur", commit);
+    input.addEventListener("input", () => updateCompositePreview(wrapper, descriptor, inputs));
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        commit();
+      }
+    });
+  }
+
+  updateCompositePreview(wrapper, descriptor, inputs);
+  return wrapper;
+}
+
+function updateCompositePreview(wrapper, descriptor, inputs) {
+  if (descriptor.kind !== "color") {
+    return;
+  }
+
+  const preview = wrapper.querySelector(".color-preview");
+  if (!preview) {
+    return;
+  }
+
+  const values = inputs.map((input) => Number.parseFloat(input.value || "0"));
+  const divisor = descriptor.integer ? 255 : 1;
+  const r = clamp01((values[0] || 0) / divisor);
+  const g = clamp01((values[1] || 0) / divisor);
+  const b = clamp01((values[2] || 0) / divisor);
+  const a = clamp01(((values[3] ?? (descriptor.integer ? 255 : 1)) || 0) / divisor);
+  preview.style.background = `rgba(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)}, ${a})`;
+}
+
+function getCompositeDescriptor(member) {
+  switch (member.controlHint) {
+    case "vector2":
+      return { kind: "vector", integer: false, suffixes: [".x", ".y"], axisLabels: ["X", "Y"] };
+    case "vector2int":
+      return { kind: "vector", integer: true, suffixes: [".x", ".y"], axisLabels: ["X", "Y"] };
+    case "vector3":
+      return { kind: "vector", integer: false, suffixes: [".x", ".y", ".z"], axisLabels: ["X", "Y", "Z"] };
+    case "vector3int":
+      return { kind: "vector", integer: true, suffixes: [".x", ".y", ".z"], axisLabels: ["X", "Y", "Z"] };
+    case "vector4":
+      return { kind: "vector", integer: false, suffixes: [".x", ".y", ".z", ".w"], axisLabels: ["X", "Y", "Z", "W"] };
+    case "quaternion":
+      return { kind: "vector", integer: false, suffixes: [".eulerAngles.x", ".eulerAngles.y", ".eulerAngles.z"], axisLabels: ["X", "Y", "Z"] };
+    case "color":
+      return { kind: "color", integer: member.typeName === "Color32", suffixes: [".r", ".g", ".b", ".a"], axisLabels: ["R", "G", "B", "A"] };
+    case "rect":
+      return { kind: "rect", integer: false, suffixes: [".x", ".y", ".width", ".height"], axisLabels: ["X", "Y", "W", "H"] };
+    case "rectint":
+      return { kind: "rect", integer: true, suffixes: [".x", ".y", ".width", ".height"], axisLabels: ["X", "Y", "W", "H"] };
+    default:
+      return null;
+  }
+}
+
+function normalizeCompositePart(value) {
+  const trimmed = (value || "").trim();
+  return trimmed === "" ? "0" : trimmed;
 }
 
 function bindInputCommit(input, member, componentInstanceId) {
@@ -797,6 +969,22 @@ function findMember(members, path) {
 
 function isBooleanMember(member) {
   return member && (member.typeName === "Boolean" || member.typeName === "bool");
+}
+
+function hasEnumOptions(member) {
+  return Boolean(member && Array.isArray(member.options) && member.options.length);
+}
+
+function isNumericMember(member) {
+  return Boolean(member && ["number", "integer", "layermask"].includes(member.controlHint));
+}
+
+function isIntegerMember(member) {
+  return Boolean(member && ["integer", "layermask"].includes(member.controlHint));
+}
+
+function clamp01(value) {
+  return Math.min(1, Math.max(0, Number.isFinite(value) ? value : 0));
 }
 
 function normalizeHttpHost(value) {

@@ -34,14 +34,17 @@ body {
 
 button,
 input,
-textarea {
+textarea,
+select {
   font: inherit;
 }
 
 button,
 input[type="text"],
+input[type="number"],
 input[type="password"],
-textarea {
+textarea,
+select {
   min-height: 24px;
   padding: 3px 8px;
   border: 1px solid var(--line-soft);
@@ -70,7 +73,8 @@ button.danger {
 }
 
 input:focus,
-textarea:focus {
+textarea:focus,
+select:focus {
   outline: 1px solid var(--selection-bright);
   border-color: var(--selection-bright);
 }
@@ -567,14 +571,17 @@ textarea:focus {
 }
 
 .property-inline {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 6px;
   min-width: 0;
 }
 
 .property-input,
-.property-textarea {
+.property-textarea,
+.property-select,
+.composite-input {
   width: 100%;
   min-width: 0;
   min-height: 22px;
@@ -599,10 +606,90 @@ textarea:focus {
   text-overflow: ellipsis;
 }
 
+.object-reference-field {
+  display: flex;
+  align-items: center;
+  min-height: 22px;
+  width: 100%;
+  min-width: 0;
+  padding: 3px 8px;
+  border: 1px solid #4b4b4b;
+  background: linear-gradient(180deg, #2c2c2c, #262626);
+  color: #d8d8d8;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 .property-checkbox-line {
   display: inline-flex;
   align-items: center;
   min-height: 22px;
+}
+
+.composite-field {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+
+.composite-field.composite-color {
+  grid-template-columns: 18px repeat(4, minmax(0, 1fr));
+  grid-auto-flow: initial;
+  grid-auto-columns: auto;
+}
+
+.composite-cell {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.composite-axis {
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+.axis-x {
+  color: #d58d8d;
+}
+
+.axis-y {
+  color: #8fc27a;
+}
+
+.axis-z,
+.axis-w {
+  color: #7aa9d2;
+}
+
+.axis-r {
+  color: #e39393;
+}
+
+.axis-g {
+  color: #90c787;
+}
+
+.axis-b {
+  color: #88aee0;
+}
+
+.axis-a {
+  color: #d7d7d7;
+}
+
+.color-preview {
+  align-self: stretch;
+  border: 1px solid #525252;
+  border-radius: 2px;
+  background: #000;
 }
 
 .property-type-tag {

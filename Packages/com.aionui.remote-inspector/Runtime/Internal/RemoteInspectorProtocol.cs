@@ -114,6 +114,10 @@ namespace Aion.RemoteInspector.Internal
         public bool editable;
         public bool multiline;
         public int depth;
+        public string controlHint;
+        public string[] options;
+        public string referenceTypeName;
+        public int referenceInstanceId;
     }
 
     [Serializable]
