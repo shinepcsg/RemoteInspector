@@ -328,7 +328,38 @@ namespace Aion.RemoteInspector.Internal
                     continue;
                 }
 
-                components.Add(BuildComponent(component));
+                try
+                {
+                    components.Add(BuildComponent(component));
+                }
+                catch (Exception ex)
+                {
+                    components.Add(new InspectorComponentDto
+                    {
+                        instanceId = component.GetInstanceID(),
+                        typeName = component.GetType().Name,
+                        enabled = true,
+                        canToggleEnabled = false,
+                        canDestroy = component is not Transform,
+                        members = new[]
+                        {
+                            new InspectorMemberDto
+                            {
+                                path = "__error",
+                                label = "Error",
+                                typeName = "String",
+                                value = ex.Message,
+                                editable = false,
+                                multiline = false,
+                                depth = 0,
+                                controlHint = "summary",
+                                options = Array.Empty<string>(),
+                                referenceTypeName = string.Empty,
+                                referenceInstanceId = 0
+                            }
+                        }
+                    });
+                }
             }
 
             return new InspectorResponsePayload
@@ -757,7 +788,28 @@ namespace Aion.RemoteInspector.Internal
         private static InspectorComponentDto BuildComponent(Component component)
         {
             var members = new List<InspectorMemberDto>();
-            AddComponentMembers(component, members);
+            try
+            {
+                AddComponentMembers(component, members);
+            }
+            catch (Exception ex)
+            {
+                members.Add(new InspectorMemberDto
+                {
+                    path = "__error",
+                    label = "Error",
+                    typeName = "String",
+                    value = ex.Message,
+                    editable = false,
+                    multiline = false,
+                    depth = 0,
+                    controlHint = "summary",
+                    options = Array.Empty<string>(),
+                    referenceTypeName = string.Empty,
+                    referenceInstanceId = 0
+                });
+            }
+
             var canToggleEnabled = TryGetComponentEnabledState(component, out var enabledState);
             return new InspectorComponentDto
             {
