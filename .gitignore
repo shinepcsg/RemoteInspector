@@ -1,0 +1,107 @@
+# ===========================
+# Unity 자동 생성 파일 / 폴더
+# ===========================
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+
+# Memorystore (Unity Asset DB 캐시)
+/[Mm]emorystore/
+
+# asm (Assembly Resolution 캐시)
+/[Aa]sm[Dd]ef[Rr]eferences/
+
+# ===========================
+# Unity 에디터 관련 파일
+# ===========================
+# 프로젝트 파일은 Unity가 자동 생성
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Unity3D 자동 생성 메타파일 예외: *.meta 는 추적 필요
+# (아래 패턴은 추적하지 않을 파일들)
+
+# ===========================
+# VS / Rider IDE 파일
+# ===========================
+.vs/
+.idea/
+*.sln.docstates
+
+# ===========================
+# OS 생성 파일
+# ===========================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ===========================
+# 빌드 아티팩트
+# ===========================
+ExportedObj/
+*.apk
+*.aab
+*.unitypackage
+*.app
+*.exe
+*.dll           # 단, Assets/ 하위의 플러그인 .dll은 추적 필요시 제외
+
+# -- Assets 하위 DLL은 추적 유지 (플러그인 등)
+!Assets/**/*.dll
+
+# ===========================
+# 크래시 / 로그 리포트
+# ===========================
+sysinfo.txt
+crashlytics-build.properties
+
+# ===========================
+# JetBrains Rider
+# ===========================
+.idea/
+*.sln.iml
+
+# ===========================
+# Visual Studio Code
+# ===========================
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# ===========================
+# 패키지 매니저 캐시
+# ===========================
+/[Pp]ackages/[Pp]ackage[Mm]anager[Uu]i/
+
+# ===========================
+# Burst 컴파일러 캐시
+# ===========================
+BurstDebugInformation_DoNotShip/
+
+# ===========================
+# IL2CPP 빌드 캐시
+# ===========================
+/Il2CppOutputProject/
