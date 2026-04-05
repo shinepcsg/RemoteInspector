@@ -56,6 +56,13 @@ async function boot() {
   elements.selectionTitle.textContent = "Inspector";
   elements.selectionMeta.textContent = "No selection";
 
+  // 이전에 성공한 패스워드를 자동으로 복원하고 자동 접속
+  const savedPassword = localStorage.getItem("remoteInspectorPassword");
+  if (savedPassword) {
+    elements.passwordInput.value = savedPassword;
+    connect();
+  }
+
   try {
     const response = await fetch("/api/info");
     if (response.ok) {
@@ -86,6 +93,7 @@ function bindEvents() {
       runConsoleCommand();
     }
   });
+  elements.hierarchyList.addEventListener("keydown", handleHierarchyKeydown);
 }
 
 function setupTabs() {
@@ -121,6 +129,9 @@ async function connect() {
             disconnect();
             return;
           }
+
+          // 인증 성공 시 패스워드를 저장하여 다음 접속 때 자동 적용
+          localStorage.setItem("remoteInspectorPassword", elements.passwordInput.value || "");
 
           state.authenticated = true;
           state.info = payload.info || state.info;
