@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aion Remote Inspector</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark"></span>
+      <div>
+        <div class="brand-title">Aion Remote Inspector</div>
+        <div class="brand-subtitle" id="brand-subtitle">Unity 6000 runtime browser</div>
+      </div>
+    </div>
+    <div class="connection-bar">
+      <label class="field compact">
+        <span>Host</span>
+        <input id="host-input" type="text" spellcheck="false">
+      </label>
+      <label class="field compact">
+        <span>Password</span>
+        <input id="password-input" type="password" spellcheck="false" placeholder="Optional">
+      </label>
+      <button id="connect-button" class="primary">Connect</button>
+      <button id="refresh-button">Refresh</button>
+      <div class="status-pill">
+        <span id="status-dot"></span>
+        <span id="status-text">Disconnected</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <aside class="sidebar panel">
+      <div class="panel-header">
+        <div>
+          <h2>Hierarchy</h2>
+          <p id="hierarchy-summary">No data</p>
+        </div>
+        <button id="create-empty-button">Create Empty</button>
+      </div>
+      <div class="toolbar">
+        <input id="hierarchy-search" type="text" placeholder="Search name, tag, component">
+        <label><input id="inactive-toggle" type="checkbox"> Inactive</label>
+        <label><input id="hidden-toggle" type="checkbox"> Hidden</label>
+      </div>
+      <div class="toolbar split">
+        <button id="duplicate-button">Duplicate</button>
+        <button id="delete-button" class="danger">Delete</button>
+      </div>
+      <div id="hierarchy-list" class="hierarchy-list"></div>
+    </aside>
+
+    <section class="content">
+      <div class="tabs">
+        <button data-tab="inspector" class="tab-button is-active">Inspector</button>
+        <button data-tab="logs" class="tab-button">Logs</button>
+        <button data-tab="console" class="tab-button">Console</button>
+      </div>
+
+      <section id="tab-inspector" class="tab-panel is-active">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h2 id="selection-title">No selection</h2>
+              <p id="selection-meta">Select a GameObject from the hierarchy.</p>
+            </div>
+            <div class="toolbar end">
+              <button id="toggle-active-button">Toggle Active</button>
+              <input id="component-add-input" type="text" placeholder="Component type">
+              <button id="component-add-button">Add Component</button>
+            </div>
+          </div>
+          <div id="inspector-view" class="inspector-view empty-state">Nothing selected.</div>
+        </div>
+      </section>
+
+      <section id="tab-logs" class="tab-panel">
+        <div class="panel grow">
+          <div class="panel-header">
+            <div>
+              <h2>Logs</h2>
+              <p id="logs-summary">0 entries</p>
+            </div>
+            <div class="toolbar end">
+              <input id="log-search" type="text" placeholder="Filter logs">
+              <button id="clear-logs-button">Clear</button>
+            </div>
+          </div>
+          <div class="logs-layout">
+            <div id="log-list" class="log-list"></div>
+            <pre id="log-detail" class="log-detail">Select a log entry.</pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-console" class="tab-panel">
+        <div class="panel grow">
+          <div class="panel-header">
+            <div>
+              <h2>Console</h2>
+              <p>Run built-in or custom commands over the live scene.</p>
+            </div>
+          </div>
+          <div id="console-output" class="console-output"></div>
+          <div class="console-input-row">
+            <input id="console-input" type="text" spellcheck="false" placeholder="Type a command. Try ? or list *">
+            <button id="console-send-button" class="primary">Run</button>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,839 @@
+const state = {
+  socket: null,
+  requestId: 1,
+  pending: new Map(),
+  hierarchy: [],
+  logs: [],
+  selectedGameObjectId: 0,
+  selectedLogIndex: 0,
+  inspector: null,
+  info: null,
+  authenticated: false,
+  collapsedSections: new Set()
+};
+
+const elements = {
+  hostInput: document.getElementById("host-input"),
+  passwordInput: document.getElementById("password-input"),
+  connectButton: document.getElementById("connect-button"),
+  refreshButton: document.getElementById("refresh-button"),
+  statusDot: document.getElementById("status-dot"),
+  statusText: document.getElementById("status-text"),
+  hierarchySearch: document.getElementById("hierarchy-search"),
+  inactiveToggle: document.getElementById("inactive-toggle"),
+  hiddenToggle: document.getElementById("hidden-toggle"),
+  hierarchyList: document.getElementById("hierarchy-list"),
+  hierarchySummary: document.getElementById("hierarchy-summary"),
+  selectionTitle: document.getElementById("selection-title"),
+  selectionMeta: document.getElementById("selection-meta"),
+  inspectorView: document.getElementById("inspector-view"),
+  createEmptyButton: document.getElementById("create-empty-button"),
+  duplicateButton: document.getElementById("duplicate-button"),
+  deleteButton: document.getElementById("delete-button"),
+  componentAddInput: document.getElementById("component-add-input"),
+  componentAddButton: document.getElementById("component-add-button"),
+  logSearch: document.getElementById("log-search"),
+  clearLogsButton: document.getElementById("clear-logs-button"),
+  logList: document.getElementById("log-list"),
+  logDetail: document.getElementById("log-detail"),
+  logsSummary: document.getElementById("logs-summary"),
+  consoleOutput: document.getElementById("console-output"),
+  consoleInput: document.getElementById("console-input"),
+  consoleSendButton: document.getElementById("console-send-button"),
+  toast: document.getElementById("toast"),
+  brandSubtitle: document.getElementById("brand-subtitle")
+};
+
+boot();
+
+async function boot() {
+  bindEvents();
+  setupTabs();
+
+  const origin = location.origin && location.origin !== "null" ? location.origin : "http://127.0.0.1:7759";
+  elements.hostInput.value = origin;
+  elements.selectionTitle.textContent = "Inspector";
+  elements.selectionMeta.textContent = "No selection";
+
+  try {
+    const response = await fetch("/api/info");
+    if (response.ok) {
+      state.info = await response.json();
+      elements.brandSubtitle.textContent = `${state.info.displayName} · ${state.info.localUrl}`;
+    }
+  } catch {
+    // The UI still works when /api/info is not available yet.
+  }
+}
+
+function bindEvents() {
+  elements.connectButton.addEventListener("click", connect);
+  elements.refreshButton.addEventListener("click", refreshAll);
+  elements.hierarchySearch.addEventListener("input", debounce(refreshHierarchy, 180));
+  elements.inactiveToggle.addEventListener("change", refreshHierarchy);
+  elements.hiddenToggle.addEventListener("change", refreshHierarchy);
+  elements.createEmptyButton.addEventListener("click", createEmpty);
+  elements.duplicateButton.addEventListener("click", duplicateSelection);
+  elements.deleteButton.addEventListener("click", deleteSelection);
+  elements.componentAddButton.addEventListener("click", addComponentToSelection);
+  elements.clearLogsButton.addEventListener("click", clearLogs);
+  elements.logSearch.addEventListener("input", renderLogs);
+  elements.consoleSendButton.addEventListener("click", runConsoleCommand);
+  elements.consoleInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      runConsoleCommand();
+    }
+  });
+}
+
+function setupTabs() {
+  const buttons = Array.from(document.querySelectorAll(".tab-button"));
+  const panels = Array.from(document.querySelectorAll(".tab-panel"));
+  for (const button of buttons) {
+    button.addEventListener("click", () => {
+      const tab = button.dataset.tab;
+      for (const other of buttons) {
+        other.classList.toggle("is-active", other === button);
+      }
+      for (const panel of panels) {
+        panel.classList.toggle("is-active", panel.id === `tab-${tab}`);
+      }
+    });
+  }
+}
+
+async function connect() {
+  disconnect();
+  const host = normalizeHttpHost(elements.hostInput.value);
+  const socketUrl = host.replace(/^http/i, "ws") + "/ws";
+  setStatus("Connecting", "#c89454");
+
+  try {
+    const socket = new WebSocket(socketUrl);
+    socket.addEventListener("open", () => {
+      state.socket = socket;
+      send("auth", { password: elements.passwordInput.value || "" })
+        .then((payload) => {
+          if (!payload.success) {
+            showToast(payload.message || "Authentication failed.", true);
+            disconnect();
+            return;
+          }
+
+          state.authenticated = true;
+          state.info = payload.info || state.info;
+          elements.brandSubtitle.textContent = `${state.info.displayName} · ${state.info.lanUrl || state.info.localUrl}`;
+          setStatus("Connected", "#6fa06f");
+          showToast(payload.message || "Connected.");
+          refreshAll();
+        })
+        .catch((error) => {
+          showToast(error.message, true);
+          disconnect();
+        });
+    });
+
+    socket.addEventListener("message", onSocketMessage);
+    socket.addEventListener("close", () => {
+      setStatus("Disconnected", "#bb6666");
+      state.authenticated = false;
+    });
+    socket.addEventListener("error", () => {
+      showToast("WebSocket connection failed.", true);
+      setStatus("Error", "#bb6666");
+    });
+  } catch (error) {
+    showToast(error.message, true);
+    setStatus("Error", "#bb6666");
+  }
+}
+
+function disconnect() {
+  if (state.socket) {
+    try {
+      state.socket.close();
+    } catch {
+      // Ignore close errors.
+    }
+  }
+
+  state.socket = null;
+  state.authenticated = false;
+  for (const pending of state.pending.values()) {
+    pending.reject(new Error("Socket closed."));
+  }
+  state.pending.clear();
+}
+
+function onSocketMessage(event) {
+  let message;
+  try {
+    message = JSON.parse(event.data);
+  } catch {
+    return;
+  }
+
+  let payload = {};
+  try {
+    payload = message.payloadJson ? JSON.parse(message.payloadJson) : {};
+  } catch {
+    payload = {};
+  }
+
+  let handledByPending = false;
+  if (message.requestId && state.pending.has(message.requestId)) {
+    const pending = state.pending.get(message.requestId);
+    state.pending.delete(message.requestId);
+    handledByPending = true;
+    if (message.type === "error") {
+      pending.reject(new Error(payload.message || "Request failed."));
+    } else {
+      pending.resolve(payload);
+    }
+  }
+
+  switch (message.type) {
+    case "info/result":
+      state.info = payload;
+      break;
+    case "hierarchy/result":
+      state.hierarchy = payload.nodes || [];
+      if (state.selectedGameObjectId && !state.hierarchy.some((node) => node.instanceId === state.selectedGameObjectId)) {
+        state.selectedGameObjectId = 0;
+        state.inspector = null;
+        renderInspector();
+      }
+      renderHierarchy();
+      break;
+    case "inspect/result":
+      state.inspector = payload;
+      renderInspector();
+      break;
+    case "logs/result":
+      state.logs = payload.entries || [];
+      renderLogs();
+      break;
+    case "log/append":
+      state.logs.push(payload);
+      renderLogs();
+      break;
+    case "logs/cleared":
+      state.logs = [];
+      state.selectedLogIndex = 0;
+      renderLogs();
+      break;
+    case "scene/changed":
+      refreshHierarchy();
+      if (state.selectedGameObjectId) {
+        refreshInspector();
+      }
+      break;
+    case "ack":
+      showToast(payload.message || "Updated.");
+      if (state.selectedGameObjectId) {
+        refreshInspector();
+      }
+      break;
+    case "error":
+      if (!handledByPending) {
+        showToast(payload.message || "Request failed.", true);
+      }
+      break;
+    default:
+      break;
+  }
+}
+
+function send(type, payload) {
+  if (!state.socket || state.socket.readyState !== WebSocket.OPEN) {
+    return Promise.reject(new Error("WebSocket is not connected."));
+  }
+
+  const requestId = String(state.requestId++);
+  const envelope = {
+    type,
+    requestId,
+    payloadJson: payload ? JSON.stringify(payload) : ""
+  };
+
+  state.socket.send(JSON.stringify(envelope));
+  return new Promise((resolve, reject) => {
+    const timeout = window.setTimeout(() => {
+      state.pending.delete(requestId);
+      reject(new Error(`Timed out waiting for ${type}.`));
+    }, 6000);
+
+    state.pending.set(requestId, {
+      resolve: (result) => {
+        window.clearTimeout(timeout);
+        resolve(result);
+      },
+      reject
+    });
+  });
+}
+
+function refreshAll() {
+  if (!state.authenticated) {
+    return;
+  }
+
+  refreshHierarchy();
+  refreshLogs();
+  if (state.selectedGameObjectId) {
+    refreshInspector();
+  } else {
+    renderInspector();
+  }
+}
+
+function refreshHierarchy() {
+  if (!state.authenticated) {
+    return;
+  }
+
+  send("hierarchy/get", {
+    query: elements.hierarchySearch.value || "",
+    includeInactive: elements.inactiveToggle.checked,
+    showHidden: elements.hiddenToggle.checked
+  }).catch((error) => showToast(error.message, true));
+}
+
+function refreshInspector() {
+  if (!state.authenticated || !state.selectedGameObjectId) {
+    return;
+  }
+
+  send("inspect/get", {
+    gameObjectInstanceId: state.selectedGameObjectId
+  }).catch((error) => showToast(error.message, true));
+}
+
+function refreshLogs() {
+  if (!state.authenticated) {
+    return;
+  }
+
+  send("logs/get", {}).catch((error) => showToast(error.message, true));
+}
+
+function renderHierarchy() {
+  elements.hierarchySummary.textContent = `${state.hierarchy.length} object(s)`;
+  elements.hierarchyList.innerHTML = "";
+
+  if (!state.hierarchy.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "No objects found.";
+    elements.hierarchyList.appendChild(empty);
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  for (let index = 0; index < state.hierarchy.length; index += 1) {
+    const node = state.hierarchy[index];
+    const nextNode = state.hierarchy[index + 1];
+    const hasChildren = Boolean(nextNode && nextNode.depth > node.depth);
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "hierarchy-row";
+    if (node.instanceId === state.selectedGameObjectId) {
+      button.classList.add("is-selected");
+    }
+    if (!node.activeInHierarchy) {
+      button.classList.add("is-inactive");
+    }
+
+    button.style.paddingLeft = `${6 + node.depth * 14}px`;
+    button.title = `${node.sceneName} · [${node.instanceId}]${node.hidden ? " · Hidden" : ""}`;
+    button.innerHTML = `
+      <span class="hierarchy-arrow ${hasChildren ? "is-open" : "is-empty"}">${hasChildren ? "▾" : "·"}</span>
+      <span class="hierarchy-icon"></span>
+      <span class="hierarchy-item-main">
+        <span class="hierarchy-name">${escapeHtml(node.name)}</span>
+      </span>
+    `;
+    button.addEventListener("click", () => {
+      state.selectedGameObjectId = node.instanceId;
+      refreshInspector();
+      renderHierarchy();
+    });
+    fragment.appendChild(button);
+  }
+
+  elements.hierarchyList.appendChild(fragment);
+}
+
+function renderInspector() {
+  elements.selectionTitle.textContent = "Inspector";
+  if (!state.inspector) {
+    elements.selectionMeta.textContent = state.selectedGameObjectId ? `[${state.selectedGameObjectId}]` : "No selection";
+    elements.inspectorView.textContent = "Select a GameObject from the hierarchy.";
+    elements.inspectorView.classList.add("empty-state");
+    return;
+  }
+
+  elements.selectionMeta.textContent = `${state.inspector.sceneName || "(No Scene)"} · [${state.inspector.gameObjectInstanceId}]`;
+  elements.inspectorView.innerHTML = "";
+  elements.inspectorView.classList.remove("empty-state");
+
+  const stack = document.createElement("div");
+  stack.className = "inspector-stack";
+  stack.appendChild(buildObjectHeaderCard(state.inspector));
+
+  for (const component of state.inspector.components || []) {
+    stack.appendChild(buildComponentSection(component));
+  }
+
+  stack.appendChild(buildAddComponentRow());
+  elements.inspectorView.appendChild(stack);
+}
+
+function buildObjectHeaderCard(inspector) {
+  const card = document.createElement("section");
+  card.className = "object-header-card";
+
+  const top = document.createElement("div");
+  top.className = "object-header-top";
+
+  const toggleLabel = document.createElement("label");
+  toggleLabel.className = "object-active-toggle";
+  const activeToggle = document.createElement("input");
+  activeToggle.type = "checkbox";
+  activeToggle.checked = Boolean(inspector.activeSelf);
+  activeToggle.addEventListener("change", () => updateMember(0, "activeSelf", activeToggle.checked ? "true" : "false"));
+  toggleLabel.appendChild(activeToggle);
+  top.appendChild(toggleLabel);
+
+  const nameInput = document.createElement("input");
+  nameInput.type = "text";
+  nameInput.className = "object-name-input";
+  nameInput.value = inspector.name || "";
+  bindInputCommit(nameInput, {
+    path: "name",
+    typeName: "String",
+    editable: true,
+    multiline: false,
+    value: inspector.name || ""
+  }, 0);
+  top.appendChild(nameInput);
+
+  const metaGrid = document.createElement("div");
+  metaGrid.className = "object-meta-grid";
+  metaGrid.appendChild(buildObjectMetaEditor("Tag", findMember(inspector.gameObjectMembers, "tag"), 0));
+  metaGrid.appendChild(buildObjectMetaEditor("Layer", findMember(inspector.gameObjectMembers, "layer"), 0));
+  metaGrid.appendChild(buildReadonlyMetaCard("Scene", `${inspector.sceneName || "(No Scene)"} · ${inspector.gameObjectInstanceId}`));
+
+  card.appendChild(top);
+  card.appendChild(metaGrid);
+  return card;
+}
+
+function buildObjectMetaEditor(label, member, componentInstanceId) {
+  const wrapper = document.createElement("label");
+  wrapper.className = "meta-editor";
+
+  const caption = document.createElement("span");
+  caption.className = "meta-label";
+  caption.textContent = label;
+  wrapper.appendChild(caption);
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.className = "meta-editor-input";
+  input.value = member && member.value !== "null" ? member.value : "";
+  bindInputCommit(input, member || {
+    path: label.toLowerCase(),
+    typeName: label === "Layer" ? "Int32" : "String",
+    editable: true,
+    multiline: false,
+    value: ""
+  }, componentInstanceId);
+  wrapper.appendChild(input);
+
+  return wrapper;
+}
+
+function buildReadonlyMetaCard(label, value) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "meta-readonly-card";
+
+  const caption = document.createElement("span");
+  caption.className = "meta-label";
+  caption.textContent = label;
+  wrapper.appendChild(caption);
+
+  const content = document.createElement("div");
+  content.className = "meta-readonly";
+  content.textContent = value;
+  wrapper.appendChild(content);
+
+  return wrapper;
+}
+
+function buildComponentSection(component) {
+  const sectionKey = `component:${component.instanceId}`;
+  const collapsed = state.collapsedSections.has(sectionKey);
+
+  const card = document.createElement("section");
+  card.className = "component-section";
+  if (collapsed) {
+    card.classList.add("is-collapsed");
+  }
+
+  const header = document.createElement("div");
+  header.className = "component-section-header";
+
+  const toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.className = "section-toggle";
+  toggle.innerHTML = `
+    <span class="foldout-arrow">${collapsed ? "▸" : "▾"}</span>
+    <span class="component-section-title">${escapeHtml(component.typeName)}</span>
+  `;
+  toggle.addEventListener("click", () => toggleSection(sectionKey));
+  header.appendChild(toggle);
+
+  const meta = document.createElement("span");
+  meta.className = "component-section-meta";
+  meta.textContent = `[${component.instanceId}]`;
+  header.appendChild(meta);
+
+  const actions = document.createElement("div");
+  actions.className = "section-actions";
+  if (component.canToggleEnabled && !component.enabled) {
+    const chip = document.createElement("span");
+    chip.className = "section-chip";
+    chip.textContent = "Disabled";
+    actions.appendChild(chip);
+  }
+  if (component.canDestroy) {
+    const removeButton = document.createElement("button");
+    removeButton.type = "button";
+    removeButton.className = "danger";
+    removeButton.textContent = "Remove";
+    removeButton.addEventListener("click", () => {
+      send("component/destroy", { componentInstanceId: component.instanceId })
+        .catch((error) => showToast(error.message, true));
+    });
+    actions.appendChild(removeButton);
+  }
+  header.appendChild(actions);
+  card.appendChild(header);
+
+  const body = document.createElement("div");
+  body.className = "component-body";
+  for (const member of component.members || []) {
+    body.appendChild(buildPropertyRow(member, component.instanceId));
+  }
+  card.appendChild(body);
+
+  return card;
+}
+
+function buildPropertyRow(member, componentInstanceId) {
+  const row = document.createElement("div");
+  row.className = `property-row property-indent-${Math.min(member.depth || 0, 5)}`;
+
+  const label = document.createElement("div");
+  label.className = "property-label";
+  label.innerHTML = `
+    <div class="property-label-inner">
+      <span class="property-label-text">${escapeHtml(member.label)}</span>
+    </div>
+  `;
+  row.appendChild(label);
+
+  const controlCell = document.createElement("div");
+  controlCell.className = "property-control";
+  const inline = document.createElement("div");
+  inline.className = "property-inline";
+
+  if (member.editable) {
+    inline.appendChild(buildEditableControl(member, componentInstanceId));
+  } else {
+    const readonly = document.createElement("div");
+    readonly.className = "property-value-readonly";
+    readonly.textContent = member.value;
+    inline.appendChild(readonly);
+  }
+
+  const typeTag = document.createElement("span");
+  typeTag.className = "property-type-tag";
+  typeTag.textContent = member.typeName;
+  inline.appendChild(typeTag);
+
+  controlCell.appendChild(inline);
+  row.appendChild(controlCell);
+  return row;
+}
+
+function buildEditableControl(member, componentInstanceId) {
+  if (isBooleanMember(member)) {
+    const wrapper = document.createElement("label");
+    wrapper.className = "property-checkbox-line";
+
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.className = "field-checkbox";
+    input.checked = member.value === "true";
+    input.dataset.lastCommitted = input.checked ? "true" : "false";
+    input.addEventListener("change", () => {
+      commitMemberValue(componentInstanceId, member, input.checked ? "true" : "false", input);
+    });
+    wrapper.appendChild(input);
+    return wrapper;
+  }
+
+  if (member.multiline) {
+    const textarea = document.createElement("textarea");
+    textarea.className = "property-textarea";
+    textarea.value = member.value === "null" ? "" : member.value;
+    bindInputCommit(textarea, member, componentInstanceId);
+    return textarea;
+  }
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.className = "property-input";
+  input.value = member.value === "null" ? "" : member.value;
+  bindInputCommit(input, member, componentInstanceId);
+  return input;
+}
+
+function bindInputCommit(input, member, componentInstanceId) {
+  input.dataset.lastCommitted = member.value === "null" ? "" : member.value;
+
+  const commit = () => {
+    commitMemberValue(componentInstanceId, member, input.value, input);
+  };
+
+  input.addEventListener("change", commit);
+  input.addEventListener("blur", commit);
+  input.addEventListener("keydown", (event) => {
+    if (input.tagName === "TEXTAREA") {
+      if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+        event.preventDefault();
+        commit();
+      }
+      return;
+    }
+
+    if (event.key === "Enter") {
+      event.preventDefault();
+      commit();
+    }
+  });
+}
+
+function commitMemberValue(componentInstanceId, member, nextValue, inputElement) {
+  const normalizedValue = nextValue ?? "";
+  if ((inputElement.dataset.lastCommitted || "") === normalizedValue) {
+    return;
+  }
+
+  inputElement.dataset.lastCommitted = normalizedValue;
+  updateMember(componentInstanceId, member.path, normalizedValue);
+}
+
+function buildAddComponentRow() {
+  const row = document.createElement("div");
+  row.className = "add-component-row";
+  row.appendChild(elements.componentAddInput);
+  row.appendChild(elements.componentAddButton);
+  return row;
+}
+
+function updateMember(componentInstanceId, memberPath, value) {
+  if (!state.selectedGameObjectId) {
+    return;
+  }
+
+  send("member/set", {
+    gameObjectInstanceId: state.selectedGameObjectId,
+    componentInstanceId: componentInstanceId || 0,
+    memberPath,
+    value
+  }).catch((error) => showToast(error.message, true));
+}
+
+function createEmpty() {
+  send("gameobject/create-empty", {
+    parentInstanceId: state.selectedGameObjectId || 0
+  }).catch((error) => showToast(error.message, true));
+}
+
+function duplicateSelection() {
+  if (!state.selectedGameObjectId) {
+    showToast("Select a GameObject first.", true);
+    return;
+  }
+
+  send("gameobject/duplicate", {
+    gameObjectInstanceId: state.selectedGameObjectId
+  }).catch((error) => showToast(error.message, true));
+}
+
+function deleteSelection() {
+  if (!state.selectedGameObjectId) {
+    showToast("Select a GameObject first.", true);
+    return;
+  }
+
+  send("gameobject/destroy", {
+    gameObjectInstanceId: state.selectedGameObjectId
+  }).then(() => {
+    state.selectedGameObjectId = 0;
+    state.inspector = null;
+    renderInspector();
+  }).catch((error) => showToast(error.message, true));
+}
+
+function addComponentToSelection() {
+  if (!state.selectedGameObjectId) {
+    showToast("Select a GameObject first.", true);
+    return;
+  }
+
+  const componentType = elements.componentAddInput.value.trim();
+  if (!componentType) {
+    showToast("Enter a component type.", true);
+    return;
+  }
+
+  send("component/add", {
+    gameObjectInstanceId: state.selectedGameObjectId,
+    componentType
+  }).then(() => {
+    elements.componentAddInput.value = "";
+  }).catch((error) => showToast(error.message, true));
+}
+
+function clearLogs() {
+  send("logs/clear", {}).catch((error) => showToast(error.message, true));
+}
+
+function renderLogs() {
+  const query = (elements.logSearch.value || "").toLowerCase();
+  const filtered = state.logs.filter((entry) => {
+    if (!query) {
+      return true;
+    }
+
+    return `${entry.logType} ${entry.message} ${entry.stackTrace}`.toLowerCase().includes(query);
+  });
+
+  elements.logsSummary.textContent = `${filtered.length} / ${state.logs.length} entries`;
+  elements.logList.innerHTML = "";
+
+  const selectedEntry = filtered.find((entry) => entry.index === state.selectedLogIndex);
+  if (!selectedEntry && filtered.length) {
+    state.selectedLogIndex = filtered[0].index;
+  }
+
+  for (const entry of filtered) {
+    const item = document.createElement("div");
+    const type = (entry.logType || "Log").toLowerCase();
+    item.className = `log-item ${type}`;
+    if (entry.index === state.selectedLogIndex) {
+      item.classList.add("is-selected");
+    }
+
+    item.innerHTML = `
+      <div class="log-meta">${escapeHtml(entry.timestamp || "")} · ${escapeHtml(entry.logType || "")}</div>
+      <div>${escapeHtml(entry.message || "")}</div>
+    `;
+    item.addEventListener("click", () => {
+      state.selectedLogIndex = entry.index;
+      renderLogs();
+    });
+    elements.logList.appendChild(item);
+  }
+
+  const detailEntry = filtered.find((entry) => entry.index === state.selectedLogIndex);
+  if (!detailEntry) {
+    elements.logDetail.textContent = filtered.length ? "Select a log entry." : "No matching log entries.";
+    return;
+  }
+
+  elements.logDetail.textContent = `${detailEntry.message || ""}\n\n${detailEntry.stackTrace || ""}`.trim();
+}
+
+function runConsoleCommand() {
+  const command = elements.consoleInput.value.trim();
+  if (!command) {
+    return;
+  }
+
+  send("console/execute", { command })
+    .then((payload) => {
+      appendConsole(payload.success ? "info" : "error", command, payload.output || "");
+      elements.consoleInput.value = "";
+    })
+    .catch((error) => showToast(error.message, true));
+}
+
+function appendConsole(kind, command, output) {
+  const line = document.createElement("div");
+  line.className = `console-line ${kind}`;
+  line.innerHTML = `<div class="prompt">&gt; ${escapeHtml(command)}</div><div>${escapeHtml(output || "")}</div>`;
+  elements.consoleOutput.prepend(line);
+}
+
+function toggleSection(sectionKey) {
+  if (state.collapsedSections.has(sectionKey)) {
+    state.collapsedSections.delete(sectionKey);
+  } else {
+    state.collapsedSections.add(sectionKey);
+  }
+  renderInspector();
+}
+
+function findMember(members, path) {
+  return (members || []).find((member) => member.path === path) || null;
+}
+
+function isBooleanMember(member) {
+  return member && (member.typeName === "Boolean" || member.typeName === "bool");
+}
+
+function normalizeHttpHost(value) {
+  const trimmed = (value || "").trim();
+  if (!trimmed) {
+    return "http://127.0.0.1:7759";
+  }
+
+  return trimmed.endsWith("/") ? trimmed.slice(0, -1) : trimmed;
+}
+
+function setStatus(label, color) {
+  elements.statusText.textContent = label;
+  elements.statusDot.style.background = color;
+  elements.statusDot.style.boxShadow = `0 0 0 1px ${color}`;
+}
+
+let toastTimer = 0;
+function showToast(message, isError = false) {
+  elements.toast.textContent = message;
+  elements.toast.classList.toggle("is-error", isError);
+  elements.toast.classList.add("is-visible");
+  window.clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(() => elements.toast.classList.remove("is-visible"), 2200);
+}
+
+function debounce(callback, delay) {
+  let timer = 0;
+  return (...args) => {
+    window.clearTimeout(timer);
+    timer = window.setTimeout(() => callback(...args), delay);
+  };
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
