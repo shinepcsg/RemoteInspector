@@ -349,10 +349,11 @@ function renderHierarchy() {
   const fragment = document.createDocumentFragment();
   for (const entry of visibleNodes) {
     const { node, hasChildren, collapsed } = entry;
-
     const button = document.createElement("button");
     button.type = "button";
     button.className = "hierarchy-row";
+    button.dataset.instanceId = String(node.instanceId);
+    button.tabIndex = 0;
     if (node.instanceId === state.selectedGameObjectId) {
       button.classList.add("is-selected");
     }
@@ -378,6 +379,7 @@ function renderHierarchy() {
       state.selectedGameObjectId = node.instanceId;
       refreshInspector();
       renderHierarchy();
+      focusSelectedHierarchyRow();
     });
     fragment.appendChild(button);
   }
@@ -423,6 +425,102 @@ function toggleHierarchyNode(instanceId) {
   }
 
   renderHierarchy();
+  focusSelectedHierarchyRow();
+}
+
+function handleHierarchyKeydown(event) {
+  const key = event.key;
+  if (key !== "ArrowUp" && key !== "ArrowDown" && key !== "ArrowLeft" && key !== "ArrowRight") {
+    return;
+  }
+
+  const visibleNodes = getVisibleHierarchyNodes();
+  if (!visibleNodes.length) {
+    return;
+  }
+
+  const currentIndex = visibleNodes.findIndex((entry) => entry.node.instanceId === state.selectedGameObjectId);
+
+  if (key === "ArrowUp" || key === "ArrowDown") {
+    event.preventDefault();
+    let nextIndex;
+    if (currentIndex === -1) {
+      nextIndex = key === "ArrowDown" ? 0 : visibleNodes.length - 1;
+    } else {
+      nextIndex = key === "ArrowDown" ? currentIndex + 1 : currentIndex - 1;
+      nextIndex = Math.max(0, Math.min(visibleNodes.length - 1, nextIndex));
+    }
+
+    state.selectedGameObjectId = visibleNodes[nextIndex].node.instanceId;
+    refreshInspector();
+    renderHierarchy();
+    focusSelectedHierarchyRow();
+    return;
+  }
+
+  if (currentIndex === -1) {
+    return;
+  }
+
+  const currentEntry = visibleNodes[currentIndex];
+  const instanceId = currentEntry.node.instanceId;
+
+  if (key === "ArrowLeft") {
+    event.preventDefault();
+    if (currentEntry.hasChildren && !currentEntry.collapsed) {
+      // 자식이 있고 펼쳐진 경우: 접기
+      state.collapsedHierarchyNodes.add(instanceId);
+      renderHierarchy();
+      focusSelectedHierarchyRow();
+    } else {
+      // 자식이 없거나 이미 접혀있으면: 부모로 이동
+      const currentNode = currentEntry.node;
+      if (currentNode.depth > 0) {
+        let parentIdx = -1;
+        for (let i = currentIndex - 1; i >= 0; i--) {
+          if (visibleNodes[i].node.depth < currentNode.depth) {
+            parentIdx = i;
+            break;
+          }
+        }
+        if (parentIdx !== -1) {
+          state.selectedGameObjectId = visibleNodes[parentIdx].node.instanceId;
+          refreshInspector();
+          renderHierarchy();
+          focusSelectedHierarchyRow();
+        }
+      }
+    }
+    return;
+  }
+
+  if (key === "ArrowRight") {
+    event.preventDefault();
+    if (currentEntry.hasChildren && currentEntry.collapsed) {
+      // 자식이 있고 접혀있으면: 펴기
+      state.collapsedHierarchyNodes.delete(instanceId);
+      renderHierarchy();
+      focusSelectedHierarchyRow();
+    } else if (currentEntry.hasChildren && !currentEntry.collapsed) {
+      // 이미 펼쳐져 있으면: 첫 자식으로 이동
+      const childIndex = currentIndex + 1;
+      if (childIndex < visibleNodes.length) {
+        state.selectedGameObjectId = visibleNodes[childIndex].node.instanceId;
+        refreshInspector();
+        renderHierarchy();
+        focusSelectedHierarchyRow();
+      }
+    }
+    return;
+  }
+}
+
+function focusSelectedHierarchyRow() {
+  const button = elements.hierarchyList.querySelector(".hierarchy-row.is-selected");
+  if (button) {
+    button.focus();
+    button.scrollIntoView({ block: "nearest" });
+  }
 }
 
 function syncHierarchyCollapseState() {
