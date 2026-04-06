@@ -14,7 +14,7 @@
   </p>
   <p align="center">
     <img src="https://img.shields.io/badge/Unity-6000.0+-000000?logo=unity&logoColor=white" alt="Unity 6000+" />
-    <img src="https://img.shields.io/badge/version-0.2.0-blue" alt="Version" />
+    <a href="https://openupm.com/packages/com.community.remote-inspector/"><img src="https://img.shields.io/npm/v/com.community.remote-inspector?label=openupm&registry_uri=https://package.openupm.com" alt="OpenUPM" /></a>
     <img src="https://img.shields.io/badge/license-MIT-green" alt="License" />
     <img src="https://img.shields.io/badge/platform-Editor%20%7C%20Standalone-orange" alt="Platforms" />
   </p>
@@ -69,10 +69,33 @@
 
 ## Installation
 
-### Unity Package Manager (로컬 패키지)
+### OpenUPM (Recommended)
 
-1. 이 저장소를 클론하거나 `Packages/com.community.remote-inspector` 폴더를 프로젝트의 `Packages/` 디렉터리에 복사합니다.
-2. Unity 에디터가 자동으로 패키지를 인식합니다.
+[![openupm](https://img.shields.io/npm/v/com.community.remote-inspector?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.community.remote-inspector/)
+
+[openupm-cli](https://github.com/openupm/openupm-cli)를 사용하여 설치합니다:
+
+```bash
+openupm add com.community.remote-inspector
+```
+
+또는 `Packages/manifest.json`에 scoped registry를 수동으로 추가합니다:
+
+```json
+{
+  "scopedRegistries": [
+    {
+      "name": "package.openupm.com",
+      "url": "https://package.openupm.com",
+      "scopes": [
+        "com.community.remote-inspector"
+      ]
+    }
+  ]
+}
+```
+
+> 💡 OpenUPM으로 설치하면 Package Manager에서 **자동 업데이트 알림**을 받을 수 있습니다.
 
 ### Git URL (UPM)
 
@@ -81,6 +104,11 @@
 ```
 https://github.com/shinepcsg/RemoteInspector.git?path=Packages/com.community.remote-inspector
 ```
+
+### 로컬 패키지
+
+1. 이 저장소를 클론하거나 `Packages/com.community.remote-inspector` 폴더를 프로젝트의 `Packages/` 디렉터리에 복사합니다.
+2. Unity 에디터가 자동으로 패키지를 인식합니다.
 
 ---
 

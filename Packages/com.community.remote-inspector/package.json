@@ -3,5 +3,24 @@
   "displayName": "Remote Inspector",
   "version": "0.2.0",
   "unity": "6000.0",
-  "description": "WebSocket-based runtime inspector, log viewer, and remote console for Unity 6000."
+  "description": "WebSocket-based runtime inspector, log viewer, and remote console for Unity 6000.",
+  "license": "MIT",
+  "author": {
+    "name": "shinepcsg",
+    "url": "https://github.com/shinepcsg"
+  },
+  "keywords": [
+    "inspector",
+    "remote",
+    "debug",
+    "websocket",
+    "runtime",
+    "console",
+    "log-viewer"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shinepcsg/RemoteInspector.git",
+    "directory": "Packages/com.community.remote-inspector"
+  }
 }
