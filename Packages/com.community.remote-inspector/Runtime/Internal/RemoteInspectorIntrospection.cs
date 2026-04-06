@@ -23,7 +23,9 @@ namespace RemoteInspector.Internal
             ["screen"] = typeof(Screen),
             ["quality"] = typeof(QualitySettings),
             ["application"] = typeof(Application),
+#if UNITY_AUDIO
             ["audio"] = typeof(AudioListener),
+#endif
             ["physics"] = typeof(Physics)
         };
 
@@ -76,6 +78,7 @@ namespace RemoteInspector.Internal
             new("flare", "Flare", false)
         };
 
+#if UNITY_AUDIO
         private static readonly ComponentPropertyDescriptor[] AudioSourcePropertyDescriptors =
         {
             new("clip", "Clip", false),
@@ -94,6 +97,7 @@ namespace RemoteInspector.Internal
             new("minDistance", "Min Distance"),
             new("maxDistance", "Max Distance")
         };
+#endif
 
         private static readonly ComponentPropertyDescriptor[] RigidbodyPropertyDescriptors =
         {
@@ -111,6 +115,7 @@ namespace RemoteInspector.Internal
             new("detectCollisions", "Detect Collisions")
         };
 
+#if UNITY_PHYSICS_2D
         private static readonly ComponentPropertyDescriptor[] Rigidbody2DPropertyDescriptors =
         {
             new("bodyType", "Body Type"),
@@ -125,6 +130,7 @@ namespace RemoteInspector.Internal
             new("linearVelocity", "Linear Velocity"),
             new("angularVelocity", "Angular Velocity")
         };
+#endif
 
         private static readonly ComponentPropertyDescriptor[] RendererPropertyDescriptors =
         {
@@ -186,6 +192,7 @@ namespace RemoteInspector.Internal
             new("cookingOptions", "Cooking Options")
         };
 
+#if UNITY_PHYSICS_2D
         private static readonly ComponentPropertyDescriptor[] Collider2DPropertyDescriptors =
         {
             new("offset", "Offset"),
@@ -212,7 +219,9 @@ namespace RemoteInspector.Internal
             new("size", "Size"),
             new("direction", "Direction")
         };
+#endif
 
+#if UNITY_ANIMATION
         private static readonly ComponentPropertyDescriptor[] AnimatorPropertyDescriptors =
         {
             new("applyRootMotion", "Apply Root Motion"),
@@ -224,6 +233,7 @@ namespace RemoteInspector.Internal
             new("avatar", "Avatar", false),
             new("runtimeAnimatorController", "Controller", false)
         };
+#endif
 
         private static readonly ComponentPropertyDescriptor[] CharacterControllerPropertyDescriptors =
         {
@@ -904,20 +914,24 @@ namespace RemoteInspector.Internal
                 AddNamedMembers(light, LightPropertyDescriptors, seenPaths, members);
             }
 
+#if UNITY_AUDIO
             if (component is AudioSource audioSource)
             {
                 AddNamedMembers(audioSource, AudioSourcePropertyDescriptors, seenPaths, members);
             }
+#endif
 
             if (component is Rigidbody rigidbody)
             {
                 AddNamedMembers(rigidbody, RigidbodyPropertyDescriptors, seenPaths, members);
             }
 
+#if UNITY_PHYSICS_2D
             if (component is Rigidbody2D rigidbody2D)
             {
                 AddNamedMembers(rigidbody2D, Rigidbody2DPropertyDescriptors, seenPaths, members);
             }
+#endif
 
             if (component is Renderer renderer)
             {
@@ -954,6 +968,7 @@ namespace RemoteInspector.Internal
                 AddNamedMembers(meshCollider, MeshColliderPropertyDescriptors, seenPaths, members);
             }
 
+#if UNITY_PHYSICS_2D
             if (component is Collider2D collider2D)
             {
                 AddNamedMembers(collider2D, Collider2DPropertyDescriptors, seenPaths, members);
@@ -973,11 +988,14 @@ namespace RemoteInspector.Internal
             {
                 AddNamedMembers(capsuleCollider2D, CapsuleCollider2DPropertyDescriptors, seenPaths, members);
             }
+#endif
 
+#if UNITY_ANIMATION
             if (component is Animator animator)
             {
                 AddNamedMembers(animator, AnimatorPropertyDescriptors, seenPaths, members);
             }
+#endif
 
             if (component is CharacterController characterController)
             {
