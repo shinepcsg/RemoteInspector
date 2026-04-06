@@ -1,7 +1,7 @@
 {
   "dependencies": {
-    "com.aionui.remote-inspector": {
-      "version": "file:com.aionui.remote-inspector",
+    "com.community.remote-inspector": {
+      "version": "file:com.community.remote-inspector",
       "depth": 0,
       "source": "embedded",
       "dependencies": {}

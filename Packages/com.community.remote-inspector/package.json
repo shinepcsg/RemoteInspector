@@ -1,0 +1,7 @@
+{
+  "name": "com.community.remote-inspector",
+  "displayName": "Remote Inspector",
+  "version": "0.2.0",
+  "unity": "6000.0",
+  "description": "WebSocket-based runtime inspector, log viewer, and remote console for Unity 6000."
+}

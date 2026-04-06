@@ -1,6 +1,6 @@
 {
-  "name": "Aion.RemoteInspector.Runtime",
-  "rootNamespace": "Aion.RemoteInspector",
+  "name": "RemoteInspector.Runtime",
+  "rootNamespace": "RemoteInspector",
   "references": [],
   "includePlatforms": [],
   "excludePlatforms": [],

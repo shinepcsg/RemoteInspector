@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Aion.RemoteInspector.Internal
+namespace RemoteInspector.Internal
 {
     [Serializable]
     internal sealed class SocketEnvelope

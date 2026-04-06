@@ -11,21 +11,21 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Aion.RemoteInspector;
+using RemoteInspector;
 using UnityEngine;
 
-namespace Aion.RemoteInspector.Internal
+namespace RemoteInspector.Internal
 {
     internal sealed class RemoteInspectorServer
     {
-        private readonly AionRemoteInspector _inspector;
+        private readonly RemoteInspectorBehaviour _inspector;
         private readonly ConcurrentDictionary<string, ClientConnection> _clients = new();
 
         private CancellationTokenSource _cancellationTokenSource;
         private TcpListener _listener;
         private Task _acceptLoopTask;
 
-        public RemoteInspectorServer(AionRemoteInspector inspector)
+        public RemoteInspectorServer(RemoteInspectorBehaviour inspector)
         {
             _inspector = inspector;
             _inspector.LogService.LogAdded += HandleLogAdded;
@@ -46,7 +46,7 @@ namespace Aion.RemoteInspector.Internal
             _listener = new TcpListener(IPAddress.Any, _inspector.Port);
             _listener.Start();
             _acceptLoopTask = AcceptLoopAsync(_cancellationTokenSource.Token);
-            Debug.Log($"[AionRemoteInspector] Listening on {_inspector.GetLanUrl()}");
+            Debug.Log($"[RemoteInspector] Listening on {_inspector.GetLanUrl()}");
         }
 
         public void Stop()
@@ -97,7 +97,7 @@ namespace Aion.RemoteInspector.Internal
                 }
                 catch (Exception exception)
                 {
-                    Debug.LogWarning($"[AionRemoteInspector] Accept failed: {exception.Message}");
+                    Debug.LogWarning($"[RemoteInspector] Accept failed: {exception.Message}");
                     continue;
                 }
 
@@ -158,7 +158,7 @@ namespace Aion.RemoteInspector.Internal
                 }
                 catch (Exception exception)
                 {
-                    Debug.LogWarning($"[AionRemoteInspector] Request read failed: {exception.Message}");
+                    Debug.LogWarning($"[RemoteInspector] Request read failed: {exception.Message}");
                     return;
                 }
             }
@@ -190,7 +190,7 @@ namespace Aion.RemoteInspector.Internal
             }
             catch (Exception exception)
             {
-                Debug.LogWarning($"[AionRemoteInspector] Client error: {exception.Message}");
+                Debug.LogWarning($"[RemoteInspector] Client error: {exception.Message}");
             }
             finally
             {

@@ -331,7 +331,7 @@ GameObject:
   - component: {fileID: 90526803}
   - component: {fileID: 90526804}
   m_Layer: 0
-  m_Name: AionRemoteInspector
+  m_Name: RemoteInspector
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -363,7 +363,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 14a07f8764671944b8d75a225b0d8138, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Aion.RemoteInspector.Runtime::Aion.RemoteInspector.AionRemoteInspector
+  m_EditorClassIdentifier: RemoteInspector.Runtime::RemoteInspector.RemoteInspectorBehaviour
   _displayName: Remote Inspector
   _port: 7759
   _password: changeme

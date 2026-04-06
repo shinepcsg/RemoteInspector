@@ -10,7 +10,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
-namespace Aion.RemoteInspector.Internal
+namespace RemoteInspector.Internal
 {
     internal static class RemoteInspectorIntrospection
     {

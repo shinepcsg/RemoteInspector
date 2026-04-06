@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
-namespace Aion.RemoteInspector.Internal
+namespace RemoteInspector.Internal
 {
     internal static class RemoteInspectorWebAssets
     {
@@ -14,10 +14,10 @@ namespace Aion.RemoteInspector.Internal
 
         private static readonly Dictionary<string, AssetManifestEntry> Manifest = new(System.StringComparer.OrdinalIgnoreCase)
         {
-            ["/"] = new AssetManifestEntry { ResourcePath = "AionRemoteInspectorWeb/index", ContentType = "text/html; charset=utf-8" },
-            ["/index.html"] = new AssetManifestEntry { ResourcePath = "AionRemoteInspectorWeb/index", ContentType = "text/html; charset=utf-8" },
-            ["/styles.css"] = new AssetManifestEntry { ResourcePath = "AionRemoteInspectorWeb/styles", ContentType = "text/css; charset=utf-8" },
-            ["/app.js"] = new AssetManifestEntry { ResourcePath = "AionRemoteInspectorWeb/app", ContentType = "application/javascript; charset=utf-8" }
+            ["/"] = new AssetManifestEntry { ResourcePath = "RemoteInspectorWeb/index", ContentType = "text/html; charset=utf-8" },
+            ["/index.html"] = new AssetManifestEntry { ResourcePath = "RemoteInspectorWeb/index", ContentType = "text/html; charset=utf-8" },
+            ["/styles.css"] = new AssetManifestEntry { ResourcePath = "RemoteInspectorWeb/styles", ContentType = "text/css; charset=utf-8" },
+            ["/app.js"] = new AssetManifestEntry { ResourcePath = "RemoteInspectorWeb/app", ContentType = "application/javascript; charset=utf-8" }
         };
 
         public static bool TryGetAsset(string rawPath, out string contentType, out byte[] data)

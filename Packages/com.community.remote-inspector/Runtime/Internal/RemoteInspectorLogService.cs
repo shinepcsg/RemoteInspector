@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
 
-namespace Aion.RemoteInspector.Internal
+namespace RemoteInspector.Internal
 {
     internal sealed class RemoteInspectorLogService : IDisposable
     {

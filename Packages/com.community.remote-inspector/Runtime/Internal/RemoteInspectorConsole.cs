@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Aion.RemoteInspector;
+using RemoteInspector;
 using UnityEngine;
 
-namespace Aion.RemoteInspector.Internal
+namespace RemoteInspector.Internal
 {
     internal sealed class RemoteInspectorConsole
     {

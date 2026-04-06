@@ -1,4 +1,4 @@
-# Aion Remote Inspector
+# Remote Inspector
 
 A Unity 6000 package that exposes a lightweight runtime inspector, log viewer, and command console through a browser over WebSocket.
 
@@ -18,7 +18,7 @@ A Unity 6000 package that exposes a lightweight runtime inspector, log viewer, a
 
 1. Add the package folder to your Unity project's `Packages` directory.
 2. Create an empty `GameObject` in your startup scene.
-3. Add the `AionRemoteInspector` component.
+3. Add the `RemoteInspectorBehaviour` component.
 4. Set a port and password.
 5. Enter Play Mode and open `http://127.0.0.1:<port>`.
 
@@ -35,7 +35,7 @@ A Unity 6000 package that exposes a lightweight runtime inspector, log viewer, a
 Use the `RemoteCommandAttribute` on a static method and register the type:
 
 ```csharp
-using Aion.RemoteInspector;
+using RemoteInspector;
 using UnityEngine;
 
 public static class DemoCommands
@@ -58,7 +58,7 @@ public sealed class DemoBootstrap : MonoBehaviour
 {
     private void Awake()
     {
-        AionRemoteInspector.RegisterCommands<DemoCommands>();
+        RemoteInspectorBehaviour.RegisterCommands<DemoCommands>();
     }
 }
 ```

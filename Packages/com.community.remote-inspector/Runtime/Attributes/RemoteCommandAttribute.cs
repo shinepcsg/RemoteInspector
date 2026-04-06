@@ -1,6 +1,6 @@
 using System;
 
-namespace Aion.RemoteInspector
+namespace RemoteInspector
 {
     [AttributeUsage(AttributeTargets.Method)]
     public sealed class RemoteCommandAttribute : Attribute

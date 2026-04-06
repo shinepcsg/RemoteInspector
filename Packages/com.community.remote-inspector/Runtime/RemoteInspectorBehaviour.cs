@@ -5,14 +5,14 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using Aion.RemoteInspector.Internal;
+using RemoteInspector.Internal;
 using UnityEngine;
 
-namespace Aion.RemoteInspector
+namespace RemoteInspector
 {
     [DisallowMultipleComponent]
-    [AddComponentMenu("Aion/Remote Inspector")]
-    public sealed class AionRemoteInspector : MonoBehaviour
+    [AddComponentMenu("Remote Inspector")]
+    public sealed class RemoteInspectorBehaviour : MonoBehaviour
     {
         [Header("General")]
         [SerializeField] private string _displayName = "Remote Inspector";
@@ -32,9 +32,9 @@ namespace Aion.RemoteInspector
         [Header("TLS")]
         [SerializeField] private bool _useTls;
         [SerializeField] private TextAsset _tlsCertificatePfx;
-        [SerializeField] private string _tlsCertificatePassword = "aionui";
+        [SerializeField] private string _tlsCertificatePassword = "remoteinspector";
         [SerializeField] private bool _autoGenerateSelfSignedCertificate = true;
-        [SerializeField] private string _selfSignedCommonName = "Aion Remote Inspector";
+        [SerializeField] private string _selfSignedCommonName = "Remote Inspector";
 
         private readonly ConcurrentQueue<IMainThreadWorkItem> _mainThreadQueue = new();
 
@@ -48,7 +48,7 @@ namespace Aion.RemoteInspector
         private X509Certificate2 _cachedCertificate;
         private bool _isUsingGeneratedCertificate;
 
-        public static AionRemoteInspector Instance { get; private set; }
+        public static RemoteInspectorBehaviour Instance { get; private set; }
 
         public string DisplayName => string.IsNullOrWhiteSpace(_displayName) ? Application.productName : _displayName;
 
@@ -142,7 +142,7 @@ namespace Aion.RemoteInspector
             if (_statusWindowVisible)
             {
                 GUI.depth = 0;
-                _statusWindowRect = GUI.Window(GetInstanceID(), _statusWindowRect, DrawStatusWindow, "Aion Remote Inspector");
+                _statusWindowRect = GUI.Window(GetInstanceID(), _statusWindowRect, DrawStatusWindow, "Remote Inspector");
             }
         }
 
@@ -168,7 +168,7 @@ namespace Aion.RemoteInspector
                 }
                 catch (Exception exception)
                 {
-                    Debug.LogError($"[AionRemoteInspector] TLS initialization failed: {exception.Message}");
+                    Debug.LogError($"[RemoteInspector] TLS initialization failed: {exception.Message}");
                     if (_runInBackgroundChanged)
                     {
                         Application.runInBackground = _previousRunInBackground;
