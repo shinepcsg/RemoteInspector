@@ -25,8 +25,7 @@ namespace RemoteInspector
 
         [Header("Runtime Status UI")]
         [SerializeField] private bool _showRuntimeStatusUi = true;
-        [SerializeField] private bool _showCompactStatusBadge = true;
-        [SerializeField] private bool _showExpandedStatusOnStart;
+        [SerializeField] private bool _showExpandedStatusOnStart = true;
         [SerializeField] private KeyCode _statusToggleKey = KeyCode.F2;
 
         [Header("TLS")]
@@ -103,10 +102,12 @@ namespace RemoteInspector
                 workItem.Execute();
             }
 
+#if !UNITY_ANDROID && !UNITY_IOS
             if (_showRuntimeStatusUi && Input.GetKeyDown(_statusToggleKey))
             {
                 _statusWindowVisible = !_statusWindowVisible;
             }
+#endif
         }
 
         private void OnDisable()
@@ -134,16 +135,19 @@ namespace RemoteInspector
                 return;
             }
 
-            if (_showCompactStatusBadge)
-            {
-                DrawCompactStatusBadge();
-            }
+            ApplyScaledGui();
 
             if (_statusWindowVisible)
             {
                 GUI.depth = 0;
                 _statusWindowRect = GUI.Window(GetInstanceID(), _statusWindowRect, DrawStatusWindow, "Remote Inspector");
             }
+            else
+            {
+                DrawReopenButton();
+            }
+
+            GUI.matrix = Matrix4x4.identity;
         }
 
         public void StartInspector()
@@ -312,62 +316,90 @@ namespace RemoteInspector
             Instance._console.RegisterCommands(typeof(T));
         }
 
-        private void DrawCompactStatusBadge()
+        private float GetGuiScale()
         {
-            var label = IsRunning
-                ? $"{DisplayName}  {ConnectedClientCount} client(s)  {_statusToggleKey} UI"
-                : $"{DisplayName} stopped  {_statusToggleKey} UI";
-            var size = GUI.skin.box.CalcSize(new GUIContent(label));
-            var rect = new Rect(12f, Screen.height - 30f, Mathf.Max(210f, size.x + 20f), 22f);
-            GUI.Box(rect, label);
+#if UNITY_ANDROID || UNITY_IOS
+            var dpi = Screen.dpi > 0 ? Screen.dpi : 160f;
+            return Mathf.Max(1f, dpi / 160f);
+#else
+            return 1f;
+#endif
+        }
+
+        private void ApplyScaledGui()
+        {
+            var scale = GetGuiScale();
+            GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(scale, scale, 1f));
+        }
+
+        private void DrawReopenButton()
+        {
+            var scale = GetGuiScale();
+            var scaledW = Screen.width / scale;
+            var scaledH = Screen.height / scale;
+            var btnW = 48f;
+            var btnH = 48f;
+            var rect = new Rect(scaledW - btnW - 8f, scaledH - btnH - 8f, btnW, btnH);
+            if (GUI.Button(rect, "\u2699"))
+            {
+                _statusWindowVisible = true;
+            }
         }
 
         private void DrawStatusWindow(int windowId)
         {
+            // Close button at top-right
+            if (GUI.Button(new Rect(_statusWindowRect.width - 36f, 4f, 32f, 24f), "\u2716"))
+            {
+                _statusWindowVisible = false;
+                return;
+            }
+
             var rowY = 26f;
-            GUI.Label(new Rect(12f, rowY, 388f, 18f), $"Name: {DisplayName}");
-            rowY += 20f;
-            GUI.Label(new Rect(12f, rowY, 388f, 18f), $"State: {(IsRunning ? "Running" : "Stopped")}   Clients: {ConnectedClientCount}");
-            rowY += 20f;
-            GUI.Label(new Rect(12f, rowY, 388f, 18f), $"Transport: {GetHttpScheme().ToUpperInvariant()} / {GetWebSocketScheme().ToUpperInvariant()}   Port: {Port}");
-            rowY += 20f;
-            GUI.Label(new Rect(12f, rowY, 388f, 18f), $"TLS Certificate: {GetCertificateSummary()}");
-            rowY += 22f;
-
-            GUI.Label(new Rect(12f, rowY, 90f, 18f), "Local URL");
-            GUI.TextField(new Rect(104f, rowY - 2f, 300f, 20f), GetLocalUrl());
+            GUI.Label(new Rect(12f, rowY, 388f, 22f), $"Name: {DisplayName}");
             rowY += 24f;
+            GUI.Label(new Rect(12f, rowY, 388f, 22f), $"State: {(IsRunning ? "Running" : "Stopped")}   Clients: {ConnectedClientCount}");
+            rowY += 24f;
+            GUI.Label(new Rect(12f, rowY, 388f, 22f), $"Transport: {GetHttpScheme().ToUpperInvariant()} / {GetWebSocketScheme().ToUpperInvariant()}   Port: {Port}");
+            rowY += 24f;
+            GUI.Label(new Rect(12f, rowY, 388f, 22f), $"TLS Certificate: {GetCertificateSummary()}");
+            rowY += 28f;
 
-            GUI.Label(new Rect(12f, rowY, 90f, 18f), "LAN URL");
-            GUI.TextField(new Rect(104f, rowY - 2f, 300f, 20f), GetLanUrl());
+            GUI.Label(new Rect(12f, rowY, 90f, 22f), "Local URL");
+            GUI.TextField(new Rect(104f, rowY - 2f, 300f, 24f), GetLocalUrl());
             rowY += 30f;
 
+            GUI.Label(new Rect(12f, rowY, 90f, 22f), "LAN URL");
+            GUI.TextField(new Rect(104f, rowY - 2f, 300f, 24f), GetLanUrl());
+            rowY += 36f;
+
+            var btnH = 44f;
             if (!IsRunning)
             {
-                if (GUI.Button(new Rect(12f, rowY, 96f, 24f), "Start"))
+                if (GUI.Button(new Rect(12f, rowY, 120f, btnH), "Start"))
                 {
                     StartInspector();
                 }
             }
             else
             {
-                if (GUI.Button(new Rect(12f, rowY, 96f, 24f), "Stop"))
+                if (GUI.Button(new Rect(12f, rowY, 120f, btnH), "Stop"))
                 {
                     StopInspector();
                 }
             }
 
-            if (GUI.Button(new Rect(116f, rowY, 128f, 24f), _statusWindowVisible ? "Hide Panel" : "Show Panel"))
+            if (GUI.Button(new Rect(140f, rowY, 128f, btnH), "Hide Panel"))
             {
-                _statusWindowVisible = !_statusWindowVisible;
+                _statusWindowVisible = false;
             }
 
-            if (GUI.Button(new Rect(252f, rowY, 152f, 24f), "Refresh URLs"))
+            if (GUI.Button(new Rect(276f, rowY, 130f, btnH), "Refresh URLs"))
             {
                 // Repaint only.
             }
 
-            rowY += 30f;
+            rowY += btnH + 8f;
             GUI.Label(new Rect(12f, rowY, 388f, 36f), "Tip: when TLS uses a self-signed certificate, open the HTTPS page once and accept the certificate in the browser.");
 
             GUI.DragWindow(new Rect(0f, 0f, 420f, 20f));
